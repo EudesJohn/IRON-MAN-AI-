@@ -265,6 +265,78 @@ def run_github_analysis(repo_url):
         print(f"{RED}  Timeout — l'analyse a pris trop de temps{R}")
 
 
+def install_tools():
+    """Installe les outils pentest manquants."""
+    import platform
+    import shutil
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    print(f"\n{BLUE}{'═'*60}{R}")
+    print(f"{BLUE}  INSTALLATION DES OUTILS{R}")
+    print(f"{BLUE}{'═'*60}{R}\n")
+    
+    # Liste des outils à installer
+    tools_pip = [
+        "sqlmap", "wafw00f", "dnsrecon", "xsstrike",
+        "commix", "dirsearch", "python-nmap", "dnspython",
+    ]
+    
+    tools_system = {
+        "linux": "sudo apt-get update && sudo apt-get install -y nmap nikto whatweb gobuster sslscan nuclei hydra adb",
+        "macos": "brew install nmap nikto whatweb gobuster sslscan nuclei hydra adb",
+        "windows": "winget install Insecure.Nmap --accept-package-agreements --accept-source-agreements",
+    }
+    
+    # 1. Installer les outils Python
+    print(f"{CYAN}  [1/2] Installation des outils Python...{R}\n")
+    for tool in tools_pip:
+        if shutil.which(tool):
+            print(f"    {GREEN}[OK]{R} {tool}")
+        else:
+            print(f"    {YELLOW}[...] {tool}...{R}")
+            try:
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", tool],
+                    capture_output=True, text=True, timeout=120
+                )
+                if result.returncode == 0:
+                    print(f"    {GREEN}[OK]{R} {tool} installe")
+                else:
+                    print(f"    {RED}[ERREUR]{R} {tool}")
+            except subprocess.TimeoutExpired:
+                print(f"    {RED}[TIMEOUT]{R} {tool}")
+            except Exception as e:
+                print(f"    {RED}[ERREUR]{R} {tool}: {e}")
+    
+    # 2. Vérifier les outils système
+    print(f"\n{CYAN}  [2/2] Vérification des outils système...{R}\n")
+    system_tools = ["nmap", "nikto", "whatweb", "gobuster", "sslscan", "nuclei", "hydra", "adb"]
+    missing = []
+    for tool in system_tools:
+        if shutil.which(tool):
+            print(f"    {GREEN}[OK]{R} {tool}")
+        else:
+            print(f"    {RED}[MANQUANT]{R} {tool}")
+            missing.append(tool)
+    
+    # Instructions pour les outils système manquants
+    if missing:
+        print(f"\n{YELLOW}  Outils système manquants :{R}")
+        system = platform.system().lower()
+        if system == "windows":
+            print(f"    Pour installer nmap : {CYAN}winget install Insecure.Nmap{R}")
+            print(f"    Pour les autres outils, installez Chocolatey :{R}")
+            print(f"    {CYAN}https://chocolatey.org/install{R}")
+            print(f"    Puis : {CYAN}choco install nikto whatweb gobuster sslscan nuclei hydra{R}")
+        elif system == "darwin":
+            print(f"    {CYAN}{tools_system['macos']}{R}")
+        else:
+            print(f"    {CYAN}{tools_system['linux']}{R}")
+    
+    print(f"\n{GREEN}  Installation terminee !{R}\n")
+
+
 def main():
     banner()
     
@@ -280,6 +352,7 @@ def main():
                 "📡 Scanner un réseau WiFi",
                 "📱 Auditer mon téléphone",
                 "🔑 Tester le brute-force d'un login",
+                "📦 Installer les outils",
                 "📊 Voir les rapports existants",
                 "❌ Quitter",
             ],
@@ -359,6 +432,10 @@ def main():
                 subprocess.run(cmd, cwd=base_dir, timeout=600)
             except subprocess.TimeoutExpired:
                 print(f"{RED}  Timeout{R}")
+        
+        # ── Installer outils ──
+        elif "installer" in action.lower() or "outil" in action.lower():
+            install_tools()
         
         # ── Voir rapports ──
         elif "rapport" in action.lower():
