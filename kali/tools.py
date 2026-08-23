@@ -11,6 +11,10 @@ lorsque le palier "attack" est explicitement demandé.
 
 import platform
 
+import os
+import platform
+import shutil
+
 from .urls import netloc
 from .wordlist import resolve_wordlist
 
@@ -21,6 +25,29 @@ KALI_WORDLIST = "/usr/share/wordlists/dirb/common.txt"
 # Détection OS pour alternatives Windows
 _IS_WINDOWS = platform.system() == "Windows"
 
+# Chemins Windows supplementaires pour trouver les binaires
+_WINDOWS_EXTRA_PATHS = [
+    os.path.join(os.environ.get("PROGRAMFILES(X86)", "C:/Program Files (x86)"), "Nmap"),
+    os.path.join(os.environ.get("PROGRAMFILES", "C:/Program Files"), "Nmap"),
+    os.path.join(os.path.expanduser("~"), "go", "bin"),
+    os.path.join(os.environ.get("PROGRAMDATA", "C:/ProgramData"), "chocolatey", "bin"),
+]
+
+
+def _find_binary(name: str) -> str or None:
+    """Trouve le chemin complet d'un binaire, y compris sur Windows."""
+    path = shutil.which(name)
+    if path:
+        return path
+    if _IS_WINDOWS:
+        for extra_dir in _WINDOWS_EXTRA_PATHS:
+            if not extra_dir or not os.path.isdir(extra_dir):
+                continue
+            candidate = os.path.join(extra_dir, name + ".exe")
+            if os.path.isfile(candidate):
+                return candidate
+    return None
+
 
 def _maximal(ctx) -> bool:
     """Le mode maximal (--full) est-il actif ? (aucune limite, tout à fond)."""
@@ -28,9 +55,10 @@ def _maximal(ctx) -> bool:
 
 
 def _cmd_nmap(target, ctx):
+    nmap_bin = _find_binary("nmap") or "nmap"
     if _maximal(ctx):
-        return ["nmap", "-sV", "-Pn", "-p-", "-sC", target["host"]]
-    return ["nmap", "-sV", "-Pn", "--top-ports", "100", target["host"]]
+        return [nmap_bin, "-sV", "-Pn", "-p-", "-sC", target["host"]]
+    return [nmap_bin, "-sV", "-Pn", "--top-ports", "100", target["host"]]
 
 
 def _cmd_nikto(target, ctx):
@@ -59,7 +87,8 @@ def _cmd_sslscan(target, ctx):
 
 
 def _cmd_nuclei(target, ctx):
-    return ["nuclei", "-u", target["url"], "-jsonl", "-duc", "-nh",
+    nuclei_bin = _find_binary("nuclei") or "nuclei"
+    return [nuclei_bin, "-u", target["url"], "-jsonl", "-duc", "-nh",
             "-severity", "low,medium,high,critical",
             "-o", ctx["tmp"] + "/nuclei.jsonl"]
 

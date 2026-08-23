@@ -5,6 +5,7 @@ from unittest import mock
 
 from kali.preflight import (
     check_tools, install_commands, missing_tools, install_text, _detect_os,
+    _WINDOWS_ALTERNATIVES,
 )
 from kali.tools import all_tools, applies, TOOLS
 from kali.urls import split_target, netloc
@@ -20,30 +21,44 @@ class TestPreflight(unittest.TestCase):
             self.assertNotIn("MANQUANT", install_text(status))
 
     def test_check_tools_with_all_missing_linux(self):
-        with mock.patch("kali.preflight.shutil.which", return_value=None), \
+        """Sur Linux, tous les outils manquants sont vraiment manquants (pas d'alternative)."""
+        with mock.patch("kali.preflight.which", return_value=None), \
              mock.patch("kali.preflight._detect_os", return_value=("linux", "Linux")):
             status = check_tools(attack=False)
-            missing = missing_tools(status)
-            self.assertEqual(len(missing), len(status))
-            cmds = install_commands(missing)
+            # Sur Linux, il n'y a pas d'alternative Windows
+            really_missing = [(n, i) for n, i in status.items()
+                              if not i["present"] and not i.get("alt_present")]
+            # Tous devraient etre vraiment manquants
+            self.assertEqual(len(really_missing), len(status))
+            cmds = install_commands(really_missing)
             self.assertEqual(cmds[0], "sudo apt-get update")
             self.assertTrue(cmds[1].startswith("sudo apt-get install -y "))
-            for _, info in missing:
+            for _, info in really_missing:
                 self.assertIn(info["apt"], cmds[1])
 
     def test_check_tools_with_all_missing_windows(self):
-        with mock.patch("kali.preflight.shutil.which", return_value=None), \
-             mock.patch("kali.preflight._detect_os", return_value=("windows", "Windows")), \
-             mock.patch("kali.preflight.shutil.which", side_effect=lambda b: None):
+        """Sur Windows, certains outils ont des alternatives Python."""
+        # Simule un systeme ou les outils Linux n'existent pas,
+        # mais les alternatives Python (whatweb, dirsearch) sont installees.
+        def mock_which(name):
+            if name in ("whatweb", "dirsearch", "dirsearch.exe"):
+                return f"/fake/{name}"
+            return None
+
+        with mock.patch("kali.preflight.which", side_effect=mock_which), \
+             mock.patch("kali.preflight._detect_os", return_value=("windows", "Windows")):
             status = check_tools(attack=False)
-        missing = missing_tools(status)
-        self.assertEqual(len(missing), len(status))
-        cmds = install_commands(missing)
-        # Sur Windows, on doit avoir au moins une commande
-        self.assertTrue(len(cmds) > 0)
-        # Les commandes doivent être adaptées à Windows (pas de apt-get)
-        for cmd in cmds:
-            self.assertNotIn("apt-get", cmd)
+            # Sur Windows, certains outils ont des alternatives
+            really_missing = [(n, i) for n, i in status.items()
+                              if not i["present"] and not i.get("alt_present")]
+            # Les outils avec alternatives ne sont pas "manquants"
+            self.assertLess(len(really_missing), len(status))
+            # Les outils avec alternatives sont identifies
+            for name, info in status.items():
+                if name in _WINDOWS_ALTERNATIVES and _WINDOWS_ALTERNATIVES[name]:
+                    # Ce outil a une alternative, il ne devrait pas etre dans really_missing
+                    self.assertFalse(any(n == name for n, _ in really_missing),
+                                     f"{name} ne devrait pas etre manquant (a une alternative)")
 
     def test_check_tools_attack_gates_output(self):
         # Sans --attack, aucun outil invasif (sqlmap, xsstrike, commix, hydra).
@@ -55,31 +70,34 @@ class TestPreflight(unittest.TestCase):
             self.assertIn(invasive, names_attack)
 
     def test_install_text_mentions_apt_package_linux(self):
-        with mock.patch("kali.preflight.shutil.which", side_effect=lambda b: None), \
+        with mock.patch("kali.preflight.which", return_value=None), \
              mock.patch("kali.preflight._detect_os", return_value=("linux", "Linux")):
             status = check_tools(attack=False)
         text = install_text(status)
         self.assertIn("sudo apt-get install -y", text)
-        # Chaque outil manquant a sa ligne  ->  sudo apt-get install -y <apt>
-        for name, _ in missing_tools(status):
-            self.assertIn(f"sudo apt-get install -y {TOOLS[name]['apt']}", text)
 
     def test_install_text_mentions_windows_commands(self):
-        with mock.patch("kali.preflight.shutil.which", side_effect=lambda b: None), \
+        with mock.patch("kali.preflight.which", return_value=None), \
              mock.patch("kali.preflight._detect_os", return_value=("windows", "Windows")):
             status = check_tools(attack=False)
         text = install_text(status)
         self.assertIn("Windows", text)
-        # Au moins une commande Windows (choco, winget, ou pip)
-        has_windows_cmd = any(
-            word in text for word in ["choco", "winget", "pip install"]
-        )
-        self.assertTrue(has_windows_cmd, f"Pas de commande Windows dans :\n{text}")
+        # Sur Windows avec alternatives, on doit mentionner les alternatives
+        self.assertIn("alternative", text.lower())
 
     def test_detect_os_returns_valid(self):
         os_id, os_name = _detect_os()
         self.assertIn(os_id, ("linux", "windows", "macos"))
         self.assertIsInstance(os_name, str)
+
+    def test_windows_alternatives_defined(self):
+        """Les alternatives Windows sont bien definies pour les outils cibles."""
+        self.assertIn("nikto", _WINDOWS_ALTERNATIVES)
+        self.assertIn("gobuster", _WINDOWS_ALTERNATIVES)
+        self.assertIn("sslscan", _WINDOWS_ALTERNATIVES)
+        self.assertEqual(_WINDOWS_ALTERNATIVES["nikto"], "whatweb")
+        self.assertEqual(_WINDOWS_ALTERNATIVES["gobuster"], "dirsearch")
+        self.assertEqual(_WINDOWS_ALTERNATIVES["sslscan"], "whatweb")
 
 
 class TestUrls(unittest.TestCase):

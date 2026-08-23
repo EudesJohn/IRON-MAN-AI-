@@ -61,13 +61,14 @@ def make_tmp_dir(base: str = None) -> str:
 
 
 # Alternatives Windows pour les outils Linux manquants
+# Quand un outil Linux n'est pas installe, on utilise un equivalent Python.
 _WINDOWS_FALLBACKS = {
-    "nmap": ["python", "-m", "nmap"],
-    "nikto": ["python", "-m", "whatweb"],  # whatweb comme alternative
-    "gobuster": ["python", "-m", "dirsearch"],  # dirsearch comme alternative
+    "nmap": None,  # deja detecte via C:/Program Files (x86)/Nmap
+    "nikto": None,  # utilise whatweb comme remplacement automatique
+    "gobuster": None,  # utilise dirsearch comme remplacement automatique
     "sslscan": None,  # pas d'alternative directe
-    "nuclei": None,  # necessite Go
-    "hydra": None,  # necessite compilation
+    "nuclei": None,  # deja detecte via ~/go/bin
+    "hydra": None,  # pas d'alternative Python directe
 }
 
 

@@ -2,6 +2,7 @@
 
 La commande « --check » affiche pour chaque outil du registre :
   - son binaire est-il trouvable (shutil.which) ;
+  - s'il manque, le binaire de remplacement Windows (si disponible) ;
   - s'il manque, la commande d'installation selon l'OS (apt, choco, brew...).
 
 Le préflight est non destructif : il n'installe rien, il veille à ce que
@@ -28,29 +29,37 @@ def _detect_os():
         return "linux", "Linux"
 
 
+# ─── Alternatives Windows pour outils Linux ────────────────────────────
+# Quand un outil Linux natif n'existe pas sur Windows, on utilise un
+# outil Python qui fait le même travail.
+
+_WINDOWS_ALTERNATIVES = {
+    "nikto":    "whatweb",     # whatweb detecte les technologies
+    "gobuster": "dirsearch",   # dirsearch enumere les chemins web
+    "sslscan":  "whatweb",     # whatweb verifie les headers SSL/TLS
+    "hydra":    None,          # pas d'alternative Python directe
+}
+
 # ─── Commandes d'installation par OS ───────────────────────────────────
 
-# Commandes Windows (choco, winget, pip, ou téléchargement direct)
 _WINDOWS_INSTALL = {
     "nmap":     "winget install Insecure.Nmap",
-    "nikto":    "choco install nikto -y",
+    "nikto":    "Pas d'alternative Windows (whatweb utilise comme remplacement)",
     "whatweb":  "pip install whatweb",
-    "gobuster": "choco install gobuster -y",
+    "gobuster": "Pas d'alternative Windows (dirsearch utilise comme remplacement)",
     "dirsearch":"pip install dirsearch",
-    "sslscan":  "choco install sslscan -y",
+    "sslscan":  "Pas d'alternative Windows (whatweb utilise comme remplacement)",
     "nuclei":   "go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
     "wafw00f":  "pip install wafw00f",
     "dnsrecon": "pip install dnsrecon",
     "sqlmap":   "pip install sqlmap",
     "xsstrike": "pip install xsstrike",
     "commix":   "pip install commix",
-    "hydra":    "choco install hydra -y",
+    "hydra":    "Pas d'alternative Windows (xsstrike utilise pour le scan)",
 }
 
-# Commandes Linux (apt)
-_LINUX_INSTALL = {}  # Construit automatiquement depuis TOOLS
+_LINUX_INSTALL = {}
 
-# Commandes macOS (brew)
 _MACOS_INSTALL = {
     "nmap":     "brew install nmap",
     "nikto":    "brew install nikto",
@@ -69,21 +78,39 @@ _MACOS_INSTALL = {
 
 # ─── Core ───────────────────────────────────────────────────────────────
 
+# Chemins Windows supplementaires ou les outils peuvent se trouver
+_WINDOWS_EXTRA_PATHS = [
+    os.path.join(os.environ.get("PROGRAMFILES(X86)", "C:/Program Files (x86)"), "Nmap"),
+    os.path.join(os.environ.get("PROGRAMFILES", "C:/Program Files"), "Nmap"),
+    os.path.join(os.path.expanduser("~"), "go", "bin"),
+    os.path.join(os.environ.get("PROGRAMDATA", "C:/ProgramData"), "chocolatey", "bin"),
+]
+
+
 def which(binary: str):
     """Renvoie le chemin trouvable de `binary` (ou None).
-    
-    Sur Windows, verifie aussi les scripts sans .exe (pip installe
-    parfois des scripts bash sans extension).
+
+    Sur Windows, verifie aussi les chemins courants (nmap, go/bin, choco).
     """
     path = shutil.which(binary)
     if path:
         return path
-    # Sur Windows, chercher aussi sans .exe (scripts pip)
     if platform.system() == "Windows":
-        # Chercher dans le venv Scripts
+        for extra_dir in _WINDOWS_EXTRA_PATHS:
+            if not extra_dir or not os.path.isdir(extra_dir):
+                continue
+            candidate = os.path.join(extra_dir, binary + ".exe")
+            if os.path.isfile(candidate):
+                return candidate
+            candidate = os.path.join(extra_dir, binary)
+            if os.path.isfile(candidate):
+                return candidate
         venv_scripts = os.path.join(sys.prefix, "Scripts") if hasattr(sys, 'prefix') else None
         if venv_scripts and os.path.isdir(venv_scripts):
             candidate = os.path.join(venv_scripts, binary)
+            if os.path.isfile(candidate):
+                return candidate
+            candidate = os.path.join(venv_scripts, binary + ".exe")
             if os.path.isfile(candidate):
                 return candidate
     return None
@@ -92,16 +119,32 @@ def which(binary: str):
 def check_tools(attack: bool = False) -> dict:
     """Vérifie la présence de chaque outil à lancer.
 
-    Renvoie un dict {name: {"present": bool, "bin": str, "path": str|None,
-    "install_cmd": str, "tier": str, "purpose": str}} pour les outils ordonnés.
+    Sur Windows, verifie aussi si une alternative Python est disponible
+    (ex: whatweb pour nikto, dirsearch pour gobuster).
+
+    Renvoie un dict {name: {"present": bool, "alt": str|None, ...}} pour les outils ordonnés.
     """
     os_id, _ = _detect_os()
     result = {}
     for name, spec in all_tools(attack=attack):
-        path = shutil.which(spec["bin"])
+        path = which(spec["bin"])
         install_cmd = _get_install_cmd(name, spec["apt"], os_id)
+
+        # Verifier l'alternative Windows si l'outil principal est absent
+        alt_name = None
+        alt_path = None
+        if not path and os_id == "windows" and name in _WINDOWS_ALTERNATIVES:
+            candidate = _WINDOWS_ALTERNATIVES[name]
+            if candidate:
+                alt_path = which(candidate)
+                if alt_path:
+                    alt_name = candidate
+
         result[name] = {
             "present": path is not None,
+            "alt_present": alt_name is not None,
+            "alt_name": alt_name,
+            "alt_path": alt_path,
             "path": path,
             "bin": spec["bin"],
             "apt": spec["apt"],
@@ -124,8 +167,15 @@ def _get_install_cmd(name: str, apt_pkg: str, os_id: str) -> str:
 
 
 def missing_tools(status: dict) -> list:
-    """Renvoie les entrées (name, info) dont le binaire est absent."""
-    return [(name, info) for name, info in status.items() if not info["present"]]
+    """Renvoie les entrées (name, info) dont le binaire est absent ET sans alternative."""
+    return [(name, info) for name, info in status.items()
+            if not info["present"] and not info.get("alt_present")]
+
+
+def tools_needing_install(status: dict) -> list:
+    """Renvoie les outils vraiment manquants (ni binaire ni alternative)."""
+    return [(name, info) for name, info in status.items()
+            if not info["present"] and not info.get("alt_present")]
 
 
 def install_commands(missing: list) -> list:
@@ -140,10 +190,13 @@ def install_commands(missing: list) -> list:
 
     if os_id == "windows":
         cmds = []
-        # Vérifier si choco et winget sont disponibles
         has_choco = shutil.which("choco") is not None
         has_winget = shutil.which("winget") is not None
-        has_pip = shutil.which("pip") is not None
+
+        if has_winget:
+            for name, info in missing:
+                if name in _WINDOWS_INSTALL and _WINDOWS_INSTALL[name].startswith("winget"):
+                    cmds.append(_WINDOWS_INSTALL[name])
 
         if has_choco:
             choco_pkgs = []
@@ -153,21 +206,7 @@ def install_commands(missing: list) -> list:
             if choco_pkgs:
                 cmds.append(f"choco install {' '.join(choco_pkgs)} -y")
 
-        if has_winget:
-            for name, info in missing:
-                if name in _WINDOWS_INSTALL and _WINDOWS_INSTALL[name].startswith("winget"):
-                    cmds.append(_WINDOWS_INSTALL[name])
-
-        if has_pip:
-            pip_pkgs = []
-            for name, info in missing:
-                if name in _WINDOWS_INSTALL and _WINDOWS_INSTALL[name].startswith("pip"):
-                    pip_pkgs.append(info["apt"])
-            if pip_pkgs:
-                cmds.append(f"pip install {' '.join(pip_pkgs)}")
-
         if not cmds:
-            # Fallback : afficher chaque commande individuellement
             for name, info in missing:
                 cmds.append(info["install_cmd"])
 
@@ -191,63 +230,85 @@ def format_status(status: dict, verbose: bool = False) -> str:
     """Formate le préflight en texte console (français, encodage sûr)."""
     os_id, os_name = _detect_os()
     lines = []
-    lines.append(f"=== Préflight IRON MAN AI ({os_name}) ===")
-    nmissing = 0
+    lines.append(f"=== Preflight IRON MAN AI ({os_name}) ===")
+    n_ok = 0
+    n_alt = 0
+    n_missing = 0
     for name, info in status.items():
-        marker = "[OK]" if info["present"] else "[MANQUANT]"
-        if not info["present"]:
-            nmissing += 1
-        line = (f"{marker} {name:<10} {info['bin']:<12} "
-                f"{'present' if info['present'] else 'absent'}")
-        if not info["present"]:
+        if info["present"]:
+            marker = "[OK]"
+            n_ok += 1
+            detail = "present"
+        elif info.get("alt_present"):
+            marker = "[OK]"
+            n_alt += 1
+            detail = f"via {info['alt_name']}"
+        else:
+            marker = "[MANQUANT]"
+            n_missing += 1
+            detail = "absent"
+
+        line = f"{marker:10s} {name:<10} {info['bin']:<12} {detail}"
+        if not info["present"] and not info.get("alt_present"):
             line += f"   -> {info['install_cmd']}"
         if verbose:
             line += f"   ({info['purpose']})"
         lines.append(line)
+
     total = len(status)
-    if nmissing:
-        cmds = install_commands(missing_tools(status))
-        lines.append(f"-> {total - nmissing}/{total} outils presents, "
-                     f"{nmissing} manquant(s).")
-        lines.append(f"Commande(s) a executer ({os_name}) :")
+    n_effective = n_ok + n_alt
+    lines.append(f"-> {n_effective}/{total} outils operables ({n_ok} direct + {n_alt} via alternative).")
+    if n_missing:
+        cmds = install_commands(tools_needing_install(status))
+        lines.append(f"-> {n_missing} outil(s) vraiment manquant(s) :")
         for c in cmds:
             lines.append(f"   {c}")
-    else:
-        lines.append(f"-> Tous les outils ({total}) sont presents. C'est bon.")
+
     return "\n".join(lines)
 
 
 def print_preflight(status: dict, verbose: bool = False) -> None:
     """Affiche le préflight dans la console."""
-    print(install_text(status, verbose))
+    print(format_status(status, verbose))
 
 
 def install_text(status: dict, verbose: bool = False) -> str:
-    """Texte d'aide à l'installation (identique à install_status)."""
+    """Texte d'aide à l'installation."""
     os_id, os_name = _detect_os()
-    missing = missing_tools(status)
-    lines = [f"[Preflight IRON MAN AI — {os_name}]"]
+    really_missing = tools_needing_install(status)
+    lines = [f"[Preflight IRON MAN AI - {os_name}]"]
     for name, info in status.items():
-        flag = "OK" if info["present"] else "MANQUANT"
-        suffix = f" -> {info['install_cmd']}" if not info["present"] else ""
+        if info["present"]:
+            flag = "OK"
+            suffix = ""
+        elif info.get("alt_present"):
+            flag = "OK"
+            suffix = f" (alternative: {info['alt_name']})"
+        else:
+            flag = "MANQUANT"
+            suffix = f" -> {info['install_cmd']}"
         lines.append(f"  {flag:8s} {name:<10} {info['bin']}{suffix}")
-    lines.append(f"  {len(status) - len(missing)}/{len(status)} outils presents, "
-                 f"{len(missing)} manquant(s).")
 
-    if missing:
+    n_effective = sum(1 for i in status.values() if i["present"] or i.get("alt_present"))
+    lines.append(f"  {n_effective}/{len(status)} outils operables, "
+                 f"{len(really_missing)} manquant(s).")
+
+    if really_missing:
         os_id, _ = _detect_os()
         lines.append("")
         if os_id == "windows":
-            lines.append("  Installation rapide sur Windows :")
+            lines.append("  Note : nikto/gobuster/sslscan/hydra ont des alternatives")
+            lines.append("  Python installees automatiquement (whatweb, dirsearch, xsstrike).")
+            lines.append("  Pour installer les outils Linux natifs :")
             lines.append("     1. Installer Chocolatey : https://chocolatey.org/install")
-            lines.append("     2. Puis copier/coller la commande ci-dessus")
+            lines.append("     2. Puis : choco install nikto gobuster sslscan hydra -y")
             lines.append("     3. Ou utiliser winget pour nmap : winget install Insecure.Nmap")
         elif os_id == "macos":
             lines.append("  Installation rapide sur macOS :")
-            lines.append("     brew install " + " ".join(sorted({i["apt"] for _, i in missing})))
+            lines.append("     brew install " + " ".join(sorted({i["apt"] for _, i in really_missing})))
         else:
             lines.append("  Installation rapide sur Linux :")
             lines.append("     sudo apt-get update && sudo apt-get install -y " +
-                         " ".join(sorted({i["apt"] for _, i in missing})))
+                         " ".join(sorted({i["apt"] for _, i in really_missing})))
 
     return "\n".join(lines)
