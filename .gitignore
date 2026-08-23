@@ -1,9 +1,25 @@
 # Rapports générés
 report.html
 report.json
+report-*.html
+report-*.json
+report_*.json
+Boutikonnect.html
+supbouti.html
+
+# Logs de scan (contiennent des chemins locaux)
+scan_log*.txt
+1
 
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
+
+# Images générées
+smoke_iron.png
+
+# Config locale Claude
+.claude/
