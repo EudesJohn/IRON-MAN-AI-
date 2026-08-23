@@ -11,12 +11,14 @@ import time
 import threading
 import random
 
-# Fix Windows encoding for Unicode characters
+# Fix Windows encoding - only wrap if not already wrapped
 if sys.platform == 'win32':
     import io
     try:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        if hasattr(sys.stdout, 'buffer') and not isinstance(sys.stdout, io.TextIOWrapper):
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        if hasattr(sys.stderr, 'buffer') and not isinstance(sys.stderr, io.TextIOWrapper):
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
     except Exception:
         pass
     os.system('')
@@ -36,12 +38,17 @@ MAGENTA = "\033[95m"
 def _safe_write(text):
     """Ecriture securisee qui gere les erreurs d'encodage Windows."""
     try:
-        sys.stdout.write(text)
-        sys.stdout.flush()
-    except UnicodeEncodeError:
-        safe = text.encode('ascii', errors='replace').decode('ascii')
-        sys.stdout.write(safe)
-        sys.stdout.flush()
+        if sys.stdout and not sys.stdout.closed:
+            sys.stdout.write(text)
+            sys.stdout.flush()
+    except (UnicodeEncodeError, ValueError, OSError):
+        try:
+            if sys.stdout and not sys.stdout.closed:
+                safe = text.encode('ascii', errors='replace').decode('ascii')
+                sys.stdout.write(safe)
+                sys.stdout.flush()
+        except Exception:
+            pass
 
 
 # ─── Spinners (ASCII only pour compatibilite Windows) ─────────────────
