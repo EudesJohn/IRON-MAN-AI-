@@ -226,6 +226,7 @@ show_banner() {
     ║   ╠═╝ ╚╦╝ ╠╣ ║    ║║║║║║║║║║║║╔═╝                ║
     ║   ╩    ╩  ╚═╝╩═╝═╩╝╚╩═╝╚╝╚╩╚═╝╩                  ║
     ║           Pentest Autonome & Intégral               ║
+    ║           Fait par Eudes Johnson                     ║
     ╚═══════════════════════════════════════════════════════╝
 EOF
     echo -e "${NC}"

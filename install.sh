@@ -23,6 +23,7 @@ print_banner() {
     ║   ╩    ╩  ╚═╝╩═╝═╩╝╚╩═╝╚╝╚╩╚═╝╩                  ║
     ║         IRON MAN AI — Installation                  ║
     ║         Pentest Autonome & Intégral                 ║
+    ║         Fait par Eudes Johnson                      ║
     ╚═══════════════════════════════════════════════════════╝
 BANNER
     echo -e "${NC}"

@@ -36,6 +36,7 @@ def banner():
 ║   ╩    ╩  ╚═╝╩═╝═╩╝╚╩═╝╚╝╚╩╚═╝╩                          ║
 ║                 IRON MAN AI — Menu Interactif               ║
 ║                 Pentest Autonome & Intégral                 ║
+║                 Fait par Eudes Johnson                      ║
 ╚═══════════════════════════════════════════════════════════════╝{R}
 """)
 
@@ -242,6 +243,28 @@ def run_device(authorized):
         print(f"{RED}  Timeout{R}")
 
 
+def run_github_analysis(repo_url):
+    """Lance l'analyse de code depuis un lien GitHub."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    print(f"\n{BLUE}{'═'*60}{R}")
+    print(f"{BLUE}  ANALYSE DE CODE — GITHUB{R}")
+    print(f"{BLUE}{'═'*60}{R}")
+    print(f"  Depot   : {repo_url}")
+    print(f"{BLUE}{'═'*60}{R}\n")
+    
+    cmd = [
+        sys.executable,
+        os.path.join(base_dir, "main.py"),
+        "--repo", repo_url,
+    ]
+    
+    try:
+        subprocess.run(cmd, cwd=base_dir, timeout=600)
+    except subprocess.TimeoutExpired:
+        print(f"{RED}  Timeout — l'analyse a pris trop de temps{R}")
+
+
 def main():
     banner()
     
@@ -252,6 +275,7 @@ def main():
             "Que voulez-vous faire ?",
             options=[
                 "🌐 Auditer un site web",
+                "🔍 Analyser du code (lien GitHub)",
                 "📱 Analyser un fichier Android (APK)",
                 "📡 Scanner un réseau WiFi",
                 "📱 Auditer mon téléphone",
@@ -283,6 +307,17 @@ def main():
             if "oui" in confirm.lower():
                 run_scan(url, scan_type, authorized, pdf, exploit)
         
+        # ── Analyse GitHub ──
+        elif "github" in action.lower() or "analyser du code" in action.lower():
+            repo_url = ask(
+                "Quel est le lien GitHub du depot ?",
+                default=""
+            )
+            if not repo_url:
+                print(f"{RED}  URL requise.{R}")
+                continue
+            run_github_analysis(repo_url)
+
         # ── Analyse Android ──
         elif "android" in action.lower() or "apk" in action.lower():
             apk = ask_apk_path()

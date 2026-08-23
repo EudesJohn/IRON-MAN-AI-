@@ -1,6 +1,8 @@
 # 🛡️ IRON MAN AI — Pentest Autonome & Intégral
 
 > **Audit de sécurité complet** : scan web, injection SQL, brute-force, analyse Android, contrôle de téléphone, scan WiFi — tout en un seul outil.
+> 
+> **Fait par Eudes Johnson**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20Kali-brightgreen.svg)]()
