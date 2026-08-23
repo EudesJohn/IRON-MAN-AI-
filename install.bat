@@ -3,12 +3,11 @@ chcp 65001 >nul
 title IRON MAN AI — Installation Windows
 
 echo.
-echo     ╔═══════════════════════════════════════════════════════╗
-echo     ║   ╔═╗ ╦ ╦ ╔═╗ ╦   ╔╦╗╔═╗╔╗╔╦╔═╗╦═╗               ║
-echo     ║   ╠═╝ ╚╦╝ ╠╣ ║    ║║║║║║║║║║║║╔═╝                ║
-echo     ║   ╩    ╩  ╚═╝╩═╝═╩╝╚╩═╝╚╝╚╩╚═╝╩                  ║
-echo     ║         IRON MAN AI — Installation Windows          ║
-echo     ╚═══════════════════════════════════════════════════════╝
+echo     ========================================
+echo               IRON MAN AI
+echo         Installation Windows
+echo        Fait par Eudes Johnson
+echo     ========================================
 echo.
 
 set INSTALL_DIR=%USERPROFILE%\iron-man-ai

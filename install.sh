@@ -17,14 +17,11 @@ VENV_DIR="${INSTALL_DIR}/venv"
 print_banner() {
     echo -e "${YELLOW}"
     cat << 'BANNER'
-    ╔═══════════════════════════════════════════════════════╗
-    ║   ╔═╗ ╦ ╦ ╔═╗ ╦   ╔╦╗╔═╗╔╗╔╦╔═╗╦═╗               ║
-    ║   ╠═╝ ╚╦╝ ╠╣ ║    ║║║║║║║║║║║║╔═╝                ║
-    ║   ╩    ╩  ╚═╝╩═╝═╩╝╚╩═╝╚╝╚╩╚═╝╩                  ║
-    ║         IRON MAN AI — Installation                  ║
-    ║         Pentest Autonome & Intégral                 ║
-    ║         Fait par Eudes Johnson                      ║
-    ╚═══════════════════════════════════════════════════════╝
+    ========================================
+              IRON MAN AI
+        Installation Universelle
+       Fait par Eudes Johnson
+    ========================================
 BANNER
     echo -e "${NC}"
 }
