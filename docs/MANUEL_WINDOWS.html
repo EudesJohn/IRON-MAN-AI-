@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANUEL WINDOWS</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<h1>MANUEL WINDOWS</h1>
+<h1>Manuel d'utilisation — CodeScan sur Windows</h1>
+
+<p>Ce manuel explique comment utiliser <strong>CodeScan</strong> (analyseur statique de</p>
+<p>code, <strong>sans API d'IA</strong>) sur <strong>Windows</strong>, pour auditer vos projets locaux,</p>
+<p>générer des rapports HTML/JSON, comprendre la note /100 et utiliser le</p>
+<p>mode « IRON MAN AI » (audit web Kali) si vous avez des outils de sécurité</p>
+<p>dans le PATH.</p>
+
+<blockquote>CodeScan est un outil de <strong>défense</strong> : analysez vos propres projets ou</blockquote>
+<blockquote>ceux que vous êtes autorisé à auditer.</blockquote>
+
+<hr>
+
+<h2>1. Installation</h2>
+
+<ol><li>Installez <strong>Python 3.10+</strong> depuis [python.org](https://python.org) (cochez « Add Python to PATH » lors de l'installation).</li></ol>
+<ol><li>Décompressez le dossier <code>codescan</code> où vous voulez.</li></ol>
+<ol><li>(Optionnel) Installez <code>requests</code> uniquement si vous voulez la vérification des CVE de dépendances via OSV.dev :</li></ol>
+
+<pre><code>pip install -r requirements.txt</code></pre>
+
+<blockquote>Le cœur de CodeScan n'utilise <strong>que la bibliothèque standard</strong> : aucune</blockquote>
+<blockquote>dépendance obligatoire.</blockquote>
+
+<hr>
+
+<h2>2. Premier scan statique</h2>
+
+<p>Ouvrez PowerShell (ou Git Bash) dans le dossier <code>codescan</code> et lancez :</p>
+
+<pre><code>uv run python main.py --path .\examples --output rapport.html</code></pre>
+
+<p>Vous obtenez dans le terminal le <strong>résumé console</strong> et, dans <code>rapport.html</code>,</p>
+<p>la <strong>note /100</strong> (avec sa lettre A→F), des cartes de synthèse, les findings</p>
+<p><strong>groupés par niveau</strong> (CRITIQUE / À REVOIR / MINEUR) et la répartition par</p>
+<p>catégorie.</p>
+
+<h3>Comprendre la note /100</h3>
+
+<table>
+<tr>
+<th>Élément</th>
+<th>Détail</th>
+</tr>
+<tr>
+<td>Formule</td>
+<td><code>100 / (1 + densité/K) × (1 − 0,5 × proportion de critiques)</code></td>
+</tr>
+<tr>
+<td>Pondérations</td>
+<td>critical=5, high=2, medium=1, low=0.5</td>
+</tr>
+<tr>
+<td>Lettres</td>
+<td>A≥90, B≥80, C≥70, D≥40, F&lt;40</td>
+</tr>
+<tr>
+<td>Domaines</td>
+<td>Sécurité, Qualité, Performance</td>
+</tr>
+</table>
+
+<p>Plus il y a de résultats graves, plus la note baisse. Le score est calculé</p>
+<p>sur <strong>l'ensemble des résultats dédupliqués</strong>, indépendamment du filtre</p>
+<p><code>--severity-min</code>.</p>
+
+<hr>
+
+<h2>3. Options principales</h2>
+
+<pre><code># Analyser un dossier local
+uv run python main.py --path C:\mon\projet
+
+# Analyser un dépôt GitHub (cloné puis nettoyé)
+uv run python main.py --repo https://github.com/user/repo
+
+# Rapport JSON structuré, filtré aux failles haute/critique
+uv run python main.py --path C:\mon\projet --output scan.json --severity-min=high
+
+# Sans qualité ni score (pour un audit sécurité pure)
+uv run python main.py --path C:\mon\projet --no-quality --no-score --output scan.html</code></pre>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--path &lt;dossier&gt;</code></td>
+<td>Projet local à analyser</td>
+</tr>
+<tr>
+<td><code>--repo &lt;URL&gt;</code></td>
+<td>Dépôt GitHub à cloner puis analyser</td>
+</tr>
+<tr>
+<td><code>-o, --output &lt;fichier&gt;</code></td>
+<td>Rapport <code>.json</code> ou <code>.html</code></td>
+</tr>
+<tr>
+<td><code>--severity-min {critical,high,medium,low}</code></td>
+<td>Filtre le listing (défaut : low)</td>
+</tr>
+<tr>
+<td><code>--no-deps</code></td>
+<td>Désactive OSV.dev (CVE de dépendances)</td>
+</tr>
+<tr>
+<td><code>--no-quality</code></td>
+<td>Désactive les métriques de qualité</td>
+</tr>
+<tr>
+<td><code>--no-score</code></td>
+<td>Ne calcule ni n'affiche la note /100</td>
+</tr>
+<tr>
+<td><code>--exclude &lt;motif&gt;</code></td>
+<td>Exclut les fichiers dont le chemin contient le motif (répétable, jokers <code>*</code>/<code>?</code>)</td>
+</tr>
+<tr>
+<td><code>-v, --verbose</code></td>
+<td>Sortie détaillée</td>
+</tr>
+<tr>
+<td><code>--version</code></td>
+<td>Version</td>
+</tr>
+</table>
+
+<p><strong>Code de sortie</strong> : <code>0</code> si aucun résultat critique/haute, <code>1</code> sinon</p>
+<p>(utile pour un CI).</p>
+
+<hr>
+
+<h2>4. Imprimer un rapport en PDF (sans dépendance)</h2>
+
+<p>Le rapport HTML est <strong>autonome</strong> (CSS embarqué, aucun accès réseau) et</p>
+<p>optimisé pour l'impression A4.</p>
+
+<ol><li>Ouvrez <code>rapport.html</code> dans <strong>Edge, Chrome ou Firefox</strong>.</li></ol>
+<ol><li><strong>Ctrl+P</strong> → choisissez <strong>« Enregistrer au format PDF »</strong> (destination PDF).</li></ol>
+<ol><li>Vérifiez la mise en page : format <strong>A4</strong>, marges <strong>12 mm</strong>, les cartes et relevés <strong>ne sont pas coupés</strong> (<code>break-inside: avoid</code>).</li></ol>
+
+<blockquote>Les manuels (ce document) peuvent aussi être convertis en PDF via</blockquote>
+<blockquote><code>docs\make_pdf.py</code> (détection automatique d'Edge/Chrome/Chromium en</blockquote>
+<blockquote>headless), ou <code>docs\make_pdf_fpdf2.py</code> avec <code>pip install fpdf2</code>.</blockquote>
+
+<hr>
+
+<h2>5. Mode IRON MAN AI — audit web (Kali, utilisable sous Windows)</h2>
+
+<p>L'audit web s'appelle <strong>IRON MAN AI</strong> (<code>kali_scan.py</code> / <code>ironman.py</code>).</p>
+<p>Il est conçu pour <strong>Kali Linux</strong> ; sous Windows il fonctionne de la même</p>
+<p>façon si les outils sont dans le PATH (nmap, nikto, etc.), sinon le</p>
+<p><strong>préflight</strong> vous le dira et le scan s'arrêtera (ou continuera avec</p>
+<p><code>--allow-missing</code>).</p>
+
+<pre><code># Vérifier les outils disponibles
+uv run python kali_scan.py --check
+
+# LA commande unique : tout l'audit, au maximum, sans limite de temps,
+# avec l'audit complet en PDF (JSON + HTML + PDF)
+uv run python ironman.py --url http://127.0.0.1:8000 --authorized
+
+# Simuler (affiche les commandes sans rien exécuter)
+uv run python kali_scan.py --url http://127.0.0.1:8000 --authorized --dry-run
+
+# Scan raisonnable d'un serveur local vulnérable de démonstration
+uv run python examples\vuln_server.py --port 8123
+uv run python kali_scan.py --url http://127.0.0.1:8123 --authorized --allow-missing</code></pre>
+
+<blockquote>L'audit web est <strong>non invasif par défaut</strong> ; le flag <code>--attack</code> (sqlmap,</blockquote>
+<blockquote>xsstrike, commix, hydra) est réservé aux cibles explicitement autorisées</blockquote>
+<blockquote>(<code>--authorized</code> est obligatoire). Le PDF de l'audit complet est généré</blockquote>
+<blockquote><strong>100 % stdlib</strong> (aucun navigateur requis).</blockquote>
+
+<hr>
+
+<h2>6. Dépannage Windows</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>python</code> introuvable</td>
+<td>Python absent du PATH</td>
+<td>Réinstaller en cochant « Add to PATH »</td>
+</tr>
+<tr>
+<td>Caractères accentués illisibles</td>
+<td>Encodage console</td>
+<td>Le code utilise UTF-8 ; sous vieux terminal, utiliser Windows Terminal</td>
+</tr>
+<tr>
+<td><code>Use uv run python</code></td>
+<td><code>uv</code> actif</td>
+<td>Taper <code>uv run python …</code> (ou désactiver <code>uv</code> local)</td>
+</tr>
+<tr>
+<td><code>--repo</code> échoue</td>
+<td>Git introuvable</td>
+<td>Installer Git for Windows</td>
+</tr>
+<tr>
+<td>Scan web vide</td>
+<td>Outils Kali absents</td>
+<td>Lire <code>kali_scan.py --check</code> et installer les outils</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>7. En résumé</h2>
+
+<ol><li><code>uv run python main.py --path &lt;projet&gt;</code> pour un <strong>audit statique</strong> ;</li></ol>
+<ol><li>ouvrez le HTML → <strong>Ctrl+P</strong> → <strong>Enregistrer en PDF</strong> ;</li></ol>
+<ol><li><code>uv run python ironman.py --url &lt;cible&gt; --authorized</code> pour l'<strong>audit web complet en PDF</strong> (sur Kali, après le <code>--check</code> et l'installation des outils) ; <code>kali_scan.py --url &lt;cible&gt; --authorized</code> pour le scan web « raisonnable ».</li></ol>
+
+<p><strong>Rappel :</strong> <strong>IRON MAN AI</strong> (CodeScan) est un outil de <strong>défense</strong>, destiné</p>
+<p>à vos projets ou à ceux que vous êtes autorisé à auditer.</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</body>
+</html>

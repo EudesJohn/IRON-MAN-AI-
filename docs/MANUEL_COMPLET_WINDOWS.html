@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>IRON MAN AI — Manuel complet</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+
+body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #1a1a2e; color: #e0e0e0; line-height: 1.6; }}
+.cover {{ text-align: center; padding: 120px 40px; }}
+.cover h1 {{ font-size: 42px; color: #00d4ff;
+             border: none; margin-bottom: 8px; }}
+.cover .sub {{ font-size: 20px; color: #888; margin-bottom: 60px; }}
+.cover .toc {{ text-align: left; max-width: 640px; margin: 0 auto; }}
+.cover .toc div {{ padding: 10px 0; border-bottom: 1px solid #2a2a4a;
+                   font-size: 17px; }}
+.cover .toc .n {{ color: #00d4ff; font-weight: bold; margin-right: 12px; }}
+.cover .foot {{ margin-top: 80px; color: #555; font-size: 14px; }}
+.section {{ break-before: page; }}
+
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<div class="cover">
+<h1>IRON MAN AI — Manuel complet (Windows)</h1>
+<div class="sub">Audit web · WiFi · Android · Périphériques · CodeScan</div>
+<div class="toc"><div><span class="n">1.</span>CodeScan — Analyse statique de code</div><div><span class="n">2.</span>IRON MAN AI — Guide Windows</div><div><span class="n">3.</span>IRON MAN AI — Pentest WiFi</div><div><span class="n">4.</span>IRON MAN AI — Analyse Android (APK)</div><div><span class="n">5.</span>IRON MAN AI — Audit de périphérique</div><div><span class="n">6.</span>IRON MAN AI — Contrôler votre téléphone</div></div>
+<div class="foot">Généré automatiquement — cadre d'utilisation autorisé
+uniquement (--authorized).</div>
+</div>
+<div class="section">
+<h1>CodeScan — Analyse statique de code</h1>
+<h1>Manuel d'utilisation — CodeScan</h1>
+
+<p>Analyseur statique de code <strong>sans API d'IA</strong>, basé sur des règles AST et regex</p>
+<p>et sur la base de vulnérabilités OSV.dev.</p>
+
+<hr>
+
+<h2>Sommaire</h2>
+
+<ol><li>[À propos](#1--à-propos)</li></ol>
+<ol><li>[Prérequis et installation](#2--prérequis-et-installation)</li></ol>
+<ol><li>[Démarrage rapide](#3--démarrage-rapide)</li></ol>
+<ol><li>[Référence des options CLI](#4--référence-des-options-cli)</li></ol>
+<ol><li>[Exemples d'utilisation détaillés](#5--exemples-dutilisation-détaillés)</li></ol>
+<ol><li>[Fonctionnement interne (pipeline)](#6--fonctionnement-interne-pipeline)</li></ol>
+<ol><li>[Les rapports de sortie](#7--les-rapports-de-sortie)</li></ol>
+<ol><li>[Codes de sortie](#8--codes-de-sortie)</li></ol>
+<ol><li>[Référence des règles](#9--référence-des-règles)</li></ol>
+<ol><li>[Personnalisation des règles](#10--personnalisation-des-règles)</li></ol>
+<ol><li>[Exécution des tests](#11--exécution-des-tests)</li></ol>
+<ol><li>[Dépannage et FAQ](#12--dépannage-et-faq)</li></ol>
+<ol><li>[Intégration CI/CD](#13--intégration-cicd)</li></ol>
+<ol><li>[Limites connues](#14--limites-connues)</li></ol>
+<ol><li>[Mode IRON MAN AI — audit Kali (sites web)](#15-mode-iron-man-ai-audit-kali-sites-web)</li></ol>
+
+<hr>
+
+<h2>1. À propos</h2>
+
+<p>CodeScan parcourt un projet (dossier local ou dépôt GitHub cloné) et repère :</p>
+
+<ul><li>les <strong>failles de sécurité</strong> classiques : injection SQL, XSS, exécution de code/commandes, désérialisation non sûre, <code>except:</code> nu… ;</li></ul>
+<ul><li>les <strong>secrets exposés</strong> : clés AWS/Google/Stripe, tokens GitHub/Slack/npm, clés privées, mots de passe en clair — par patterns regex <strong>et</strong> par calcul d'<strong>entropie de Shannon</strong> ;</li></ul>
+<ul><li>les <strong>failles de configuration</strong> : CORS permissif, regex dynamique utilisateur (ReDoS), superglobales PHP lues directement, <code>SELECT *</code> ;</li></ul>
+<ul><li>la <strong>dette technique et qualité</strong> : TODO/FIXME, fonctions trop longues/complexes (cyclomatiques <strong>et cognitives</strong>), imbrication excessive, trop de paramètres, <code>==</code> au lieu de <code>===</code>, blocs vides, Nombres magiques, code commenté, <code>console.log</code> de débogage, copie profonde via JSON ;</li></ul>
+<ul><li>la <strong>performance/asynchrone (JS)</strong> : I/O synchrones bloquantes dans des gestionnaires, I/O successives en boucle (N+1), boucles quadratiques O(n²), copie profonde coûteuse ;</li></ul>
+<ul><li>les <strong>dépendances vulnérables</strong> : croisement de <code>requirements.txt</code>, <code>package.json</code>, <code>composer.json</code>… avec la base de CVE <strong>OSV.dev</strong> ;</li></ul>
+<ul><li>une <strong>note de qualité /100 + lettre (A→F)</strong> qui synthétise tout le projet.</li></ul>
+
+<p>Contrairement à un assistant IA, CodeScan ne « devine » rien : chaque résultat</p>
+<p>provient d'une règle déterministe (AST Python ou regex) et est associé à une</p>
+<p>sévérité, une description et une recommandation.</p>
+
+<hr>
+
+<h2>2. Prérequis et installation</h2>
+
+<table>
+<tr>
+<th>Prérequis</th>
+<th>Rôle</th>
+</tr>
+<tr>
+<td><strong>Python ≥ 3.10</strong></td>
+<td>Interpréteur (le cœur utilise uniquement la bibliothèque standard)</td>
+</tr>
+<tr>
+<td><strong>git</strong> (optionnel)</td>
+<td>Nécessaire uniquement pour le mode <code>--repo</code> (clonage)</td>
+</tr>
+<tr>
+<td><strong>requests</strong> (optionnel)</td>
+<td>Nécessaire uniquement pour la vérification OSV.dev</td>
+</tr>
+</table>
+
+<pre><code># Depuis le dossier codescan/
+pip install -r requirements.txt     # installe requests (facultatif)</code></pre>
+
+<blockquote><strong>Astuce Windows</strong> : si <code>python</code> n'est pas reconnu, utilisez le lanceur</blockquote>
+<blockquote><code>py</code> à la place (ex. <code>py main.py --path ./mon_projet</code>).</blockquote>
+
+<p>Vérifier l'installation :</p>
+
+<pre><code>py main.py --version        # affiche la version
+py main.py --help           # affiche l'aide complète</code></pre>
+
+<hr>
+
+<h2>3. Démarrage rapide</h2>
+
+<pre><code># 1. Analyser un dossier local (résumé console uniquement)
+py main.py --path ./mon_projet
+
+# 2. Analyser un dossier et générer un rapport HTML
+py main.py --path ./mon_projet --output report.html
+
+# 3. Analyser un dépôt GitHub (cloné puis supprimé automatiquement)
+py main.py --repo https://github.com/user/repo --output report.json
+
+# 4. Ne garder que les failles haute/critique
+py main.py --path ./mon_projet --output report.html --severity-min=high
+
+# 5. Démo sur le projet d'exemple fourni
+py main.py --path examples --output report.html --verbose
+
+# 6. Rapport « épuré » : sans qualité de code ni note
+py main.py --path ./mon_projet --no-quality --no-score --output report.html</code></pre>
+
+<p>Le résultat s'affiche immédiatement dans le terminal ; le rapport (HTML ou</p>
+<p>JSON) est écrit dans le fichier indiqué par <code>--output</code>.</p>
+
+<hr>
+
+<h2>4. Référence des options CLI</h2>
+
+<pre><code>usage: CodeScan [-h] [--path CHEMIN] [--repo URL] [-o FICHIER]
+                [--severity-min {critical,high,medium,low}]
+                [--no-deps] [--no-quality] [--no-score]
+                [--rules FICHIER] [-v] [--version]</code></pre>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Défaut</th>
+</tr>
+<tr>
+<td><code>--path &lt;CHEMIN&gt;</code></td>
+<td>Dossier local du projet à analyser.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--repo &lt;URL&gt;</code></td>
+<td>URL GitHub à cloner puis analyser (<code>https://github.com/user/repo</code>).</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>-o, --output &lt;FICHIER&gt;</code></td>
+<td>Rapport de sortie. Extension <code>.json</code> ou <code>.html</code> (le format est déduit de l'extension). Sans cette option, résumé console seul.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--severity-min &lt;NIVEAU&gt;</code></td>
+<td>Sévérité minimale des résultats retenus. Les niveaux inférieurs sont <strong>filtrés</strong> du rapport.</td>
+<td><code>low</code></td>
+</tr>
+<tr>
+<td><code>--no-deps</code></td>
+<td>Désactive l'interrogation réseau d'OSV.dev (analyse hors ligne).</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>--no-quality</code></td>
+<td>Désactive l'analyseur de qualité de code (métriques de fonction, lignes longues, async/perf JS, égalité faible…). Les règles AST Python et regex de sécurité restent actives.</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>--no-score</code></td>
+<td>Ne calcule ni n'affiche la note /100 ; la clé <code>score</code> disparaît des rapports JSON/HTML.</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>--rules &lt;FICHIER&gt;</code></td>
+<td>Chemin d'une base de patterns alternative au format JSON (voir §10).</td>
+<td><code>rules/patterns.json</code></td>
+</tr>
+<tr>
+<td><code>--exclude &lt;MOTIF&gt;</code></td>
+<td>Exclut les fichiers dont le chemin relatif contient le motif (option répétable ou motifs séparés par des virgules ; jokers <code>*</code>/<code>?</code> acceptés). Ex. <code>--exclude tests,migrations</code> ou <code>--exclude '*.min.js'</code>.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>-v, --verbose</code></td>
+<td>Affiche le détail : fichiers explorés, messages des analyseurs, liste complète des findings.</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>--version</code></td>
+<td>Affiche la version et quitte.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>-h, --help</code></td>
+<td>Affiche l'aide et quitte.</td>
+<td>—</td>
+</tr>
+</table>
+
+<p><strong>Contraintes d'usage :</strong></p>
+
+<ul><li><code>--path</code> et <code>--repo</code> sont <strong>mutuellement exclusifs</strong> mais l'un des deux est <strong>obligatoire</strong> ; sinon CodeScan renvoie une erreur (code 2).</li></ul>
+<ul><li><code>--output</code> doit se terminer par <code>.json</code> ou <code>.html</code> ; toute autre extension produit une erreur (code 2).</li></ul>
+
+<hr>
+
+<h2>5. Exemples d'utilisation détaillés</h2>
+
+<h3>5.1 Analyse locale avec rapport HTML</h3>
+
+<pre><code>py main.py --path ./mon_projet --output rapport.html --severity-min=medium --verbose</code></pre>
+
+<ul><li>Analyse tous les fichiers du projet (hors dossiers ignorés et binaires).</li></ul>
+<ul><li>Écrit <code>rapport.html</code> (autonome, consultable hors ligne).</li></ul>
+<ul><li><code>--verbose</code> liste chaque fichier exploré dans la console.</li></ul>
+
+<h3>5.2 Analyse d'un dépôt GitHub</h3>
+
+<pre><code>py main.py --repo https://github.com/django/django --output scan.json --no-deps</code></pre>
+
+<ul><li>Clone le dépôt en profondeur 1 dans un dossier temporaire.</li></ul>
+<ul><li>Analyse puis <strong>supprime</strong> automatiquement le clone (rien ne reste sur disque).</li></ul>
+<ul><li><code>--no-deps</code> évite ici la (longue) requête OSV.dev sur les centaines de dépendances d'un gros projet.</li></ul>
+
+<h3>5.3 Filtrage par sévérité (pour un tri rapide)</h3>
+
+<pre><code>py main.py --path ./mon_projet --output urgent.html --severity-min=critical</code></pre>
+
+<p>Ne conserve que les failles <strong>critiques</strong>. Utile pour le tri des incidents.</p>
+
+<h3>5.4 Mode hors ligne</h3>
+
+<pre><code>py main.py --path ./mon_projet --no-deps</code></pre>
+
+<p>Ne fait <strong>aucun</strong> accès réseau : les CVE de dépendances ne sont pas</p>
+<p>vérifiées. Le reste de l'analyse est inchangé.</p>
+
+<h3>5.5 Base de règles personnalisée</h3>
+
+<pre><code>py main.py --path ./mon_projet --rules ./ma-base.json</code></pre>
+
+<p>Charge les patterns d'un fichier JSON alternatif (voir §10).</p>
+
+<h3>5.6 Exclure des fichiers/dossiers de l'analyse</h3>
+
+<pre><code>py main.py --path ./mon_projet --exclude tests,migrations --exclude '*.min.js'</code></pre>
+
+<p>Exclut tout fichier dont le chemin relatif contient <code>tests</code> ou <code>migrations</code>,</p>
+<p>ainsi que les fichiers <code>*.min.js</code> (jokers acceptés). Pratique pour ignorer du</p>
+<p>code généré, des fixtures de test ou des bundles.</p>
+
+<h3>5.7 Rapport « sécurité uniquement »</h3>
+
+<pre><code>py main.py --path ./mon_projet --no-quality --no-score --output scan.json</code></pre>
+
+<p>Désactive l'analyse de qualité (métriques de fonction, perf JS…) <strong>et</strong> le</p>
+<p>calcul de la note : seuls les findings de sécurité/dépendances/secrets</p>
+<p>restent, et le rapport JSON n'a pas de clé <code>score</code>. Utile si vous ne</p>
+<p>voulez pas de bruit qualité ou si vous préférez un score calculé par un</p>
+<p>autre outil.</p>
+
+<hr>
+
+<h2>6. Fonctionnement interne (pipeline)</h2>
+
+<pre><code>┌──────────────┐   ┌─────────────┐   ┌──────────────────────────────┐
+│ Cible        │──▶│ Exploration │──▶│ Analyseurs (par fichier)      │
+│ --path       │   │ (crawler)   │   │  • python_analyzer  (AST)     │
+│ --repo clone │   │             │   │  • generic_analyzer (regex)   │
+└──────────────┘   └─────────────┘   │  • quality_analyzer (métricas)│
+                                     │  • secrets_detector        │
+                                     └──────────────┬─────────────┘
+                                                     ▼
+                                     ┌────────────────────────────┐
+                                     │ dependency_checker         │
+                                     │ (OSV.dev — manifestes)     │
+                                     └──────────────┬─────────────┘
+                                                     ▼
+                      ┌──────────┐   ┌──────────┐   ┌──────────────┐
+                      │ Dédup.   │   │ Score    │   │ Filtre       │
+                      │          │──▶│ /100+    │──▶│ severity     │
+                      └──────────┘   └──────────┘   └──────────────┘
+                                                      ▼
+                                   ┌──────────┐   ┌──────────┐
+                                   │ Statist. │   │ Rapports │
+                                   │ (console)│   │ JSON/HTML│
+                                   └──────────┘   └──────────┘</code></pre>
+
+<p>Étapes détaillées :</p>
+
+<ol><li><strong>Récupération de la cible</strong> — dossier local ou clonage <code>git clone --depth 1</code>.</li></ol>
+<ol><li><strong>Exploration</strong> (<code>scanner/crawler.py</code>) — parcours récursif ; ignore les dossiers <code>node_modules/</code>, <code>.git/</code>, <code>venv/</code>, <code>__pycache__/</code>, <code>dist/</code>…, les extensions binaires, et les fichiers &gt; 2 Mo. Chaque fichier est classé : <code>python</code>, <code>source</code>, <code>config</code>, <code>manifest</code>.</li></ol>
+<ol><li><strong>Analyse Python</strong> (<code>scanner/python_analyzer.py</code>) — parsing AST : <code>eval</code>, <code>exec</code>, <code>pickle</code>/<code>marshal</code>, <code>except:</code> nu, <code>subprocess(shell=True)</code>, injection SQL, <code>assert</code> de sécurité, imports dangereux, secrets nommés, et complexité de code : longueur de fonction, cyclomatique <strong>et cognitive</strong>, imbrication profonde, trop de paramètres, <code>else</code> après <code>return</code>, comparaison booléenne « redondante », blocs <code>except</code> vides.</li></ol>
+<ol><li><strong>Analyse générique</strong> (<code>scanner/generic_analyzer.py</code>) — regex sur le contenu : SQL, XSS, commandes, TODO/FIXME, CORS permissif, regex dynamique (ReDoS), superglobales PHP, <code>SELECT *</code>…</li></ol>
+<ol><li><strong>Analyse de qualité</strong> (<code>scanner/quality_analyzer.py</code>, désactivée par <code>--no-quality</code>) — métriques de fonctions sur les langages à accolades (JS/TS/PHP/Java/C#/Go/…) par équilibrage d'accolades sur un code dont les chaînes/templates/commentaires sont masqués ; règles lignes : lignes &gt; 120, fichiers &gt; 500 lignes, code commenté, nombres magiques, <code>==</code> vs <code>===</code> ; règles de débogage JS (<code>console.log</code>, <code>alert</code>, copie profonde JSON) ; règles <strong>performance/asynchrone</strong> : I/O synchrones bloquantes (hors fonctions <code>config/init/load</code> et top-level), I/O successives dans les boucles (N+1, hors <code>Promise.all</code>/<code>for await</code>), boucles O(n²) avec <code>.includes</code>/<code>indexOf</code> (hors caches <code>Map</code>/<code>Set</code>).</li></ol>
+<ol><li><strong>Détection de secrets</strong> (<code>scanner/secrets_detector.py</code>) — patterns forts, <strong>entropie de Shannon</strong> (seuil 4,5 bits/caractère), mots de passe en clair dans les fichiers de configuration (test appliqué à la clé seule, pas à la ligne entière). Les fichiers de verrouillage générés automatiquement (<code>package-lock.json</code>, <code>yarn.lock</code>, <code>pnpm-lock.yaml</code>…) sont ignorés.</li></ol>
+<ol><li><strong>Vérification des dépendances</strong> (<code>scanner/dependency_checker.py</code>) — parsing des manifestes puis requêtes <strong>batch</strong> vers <code>api.osv.dev</code>.</li></ol>
+<ol><li><strong>Post-traitement</strong> — <strong>déduplication</strong>, calcul du <strong>score /100 + grade</strong> sur l'ensemble dédupliqué (indépendant de <code>--severity-min</code>), filtrage de l'affichage, tri, statistiques, rapport.</li></ol>
+
+<hr>
+
+<h2>7. Les rapports de sortie</h2>
+
+<h3>7.1 Résumé console</h3>
+
+<p>Affiché systématiquement :</p>
+
+<pre><code>════════════════════════════════════════════════════════
+  CodeScan — Résumé de l'analyse
+════════════════════════════════════════════════════════
+  Cible             : .\mon_projet
+  Fichiers analysés : 42
+  Score de qualité   : 61/100 (C)
+  Total findings    : 12
+
+  Par sévérité :
+    critical 2    ██
+    high     5    █████
+    medium   3    ███
+    low      2    ██
+
+  Par catégorie :
+    injection       4
+    secrets       3
+    ...
+════════════════════════════════════════════════════════</code></pre>
+
+<p>Les couleurs ANSI sont activées automatiquement si le système est un TTY</p>
+<p>(désactivées si la sortie est redirigée, pour un pipeline). La ligne</p>
+<p><strong>Score de qualité</strong> n'apparaît que si le score est calculé (par défaut) ;</p>
+<p>avec <code>--no-score</code> elle devient <code>Score de qualité : désactivé (--no-score)</code>.</p>
+
+<h3>7.2 Rapport JSON</h3>
+
+<p>Structure exacte (compatible avec des outils tiers ou du CI) :</p>
+
+<pre><code>{
+  "meta": {
+    "tool": "CodeScan",
+    "version": "1.1.0",
+    "timestamp": "2026-08-04T14:05:00",
+    "target": "D:\\projet",
+    "severity_min": "low"
+  },
+  "target": "D:\\projet",
+  "summary": {
+    "total_findings": 12,
+    "files_scanned": 42,
+    "by_severity": { "critical": 2, "high": 5, "medium": 3, "low": 2 },
+    "by_category": { "injection": 4, "secrets": 3 }
+  },
+  "score": {
+    "score": 61,
+    "grade": "C",
+    "total_findings": 12,
+    "files_scanned": 42,
+    "security": 6,
+    "quality": 5,
+    "performance": 1,
+    "by_level": { "CRITIQUE": 2, "À REVOIR": 8, "MINEUR": 2 },
+    "by_domain_pct": { "security": 50.0, "quality": 41.7, "performance": 8.3 },
+    "weights": { "critical": 5, "high": 2, "medium": 1, "low": 0.5 }
+  },
+  "findings": [
+    {
+      "file": "app.py",
+      "line": 30,
+      "column": 0,
+      "rule_id": "py-subprocess-shell",
+      "category": "injection",
+      "severity": "high",
+      "title": "subprocess avec shell=True",
+      "description": "subprocess avec shell=True invoque le shell système…",
+      "recommendation": "Utiliser subprocess sans shell (liste d'arguments)…",
+      "snippet": "subprocess.run(cmd, shell=True)",
+      "language": "python",
+      "cve": "",
+      "source": "python_analyzer"
+    }
+  ]
+}</code></pre>
+
+<h3>7.3 Rapport HTML (structure Herald)</h3>
+
+<ul><li><strong>Autonome</strong> : CSS embarqué, aucune ressource externe, consultable hors ligne.</li></ul>
+<ul><li><strong>Adaptatif</strong> : thème sombre/clair selon les préférences du navigateur.</li></ul>
+<ul><li><strong>Imprimable en PDF</strong> : <code>@media print</code> format <strong>A4</strong> (<code>@page { size: A4; margin: 12mm }</code>), cartes et relevés avec <code>break-inside: avoid</code>, <code>print-color-adjust: exact</code> — « Imprimer en PDF » dans le navigateur donne un document fidèle sans coupes.</li></ul>
+<ul><li><strong>Structure</strong> (parité avec le rapport de référence Herald) : 1. <strong>en-tête</strong> : titre, badge <strong>« Sans IA »</strong>, cible, version, date ; 2. <strong>hero score</strong> : grand chiffre <code>score/100</code> (ex. <code>61/100</code>), <strong>lettre de grade colorée</strong> (A→F) et barre de progression de la note ; 3. <strong>7 cartes de synthèse</strong> : Relevés, Critiques, À revoir, Fichiers, Sécurité, Qualité, Performance ; 4. <strong>répartition par catégorie</strong> avec barres proportionnelles ; 5. <strong>findings groupés par niveau lisible</strong> : <code>CRITIQUE</code> → <code>À REVOIR</code> → <code>MINEUR</code> (les 3 sections apparaissent toujours, même vides — parité Herald), chaque entrée avec <strong>badge rule_id</strong>, titre, badge de sévérité (<code>critical</code> rouge foncé, <code>high</code> orange, <code>medium</code> jaune, <code>low</code> bleu), <strong>fichier:ligne</strong>, description, <strong>recommandation</strong> et extrait de code en <code>&lt;pre&gt;</code> échappé.</li></ul>
+
+<p>Sans score (<code>--no-score</code>), le hero et les cartes disparaissent, mais le</p>
+<p>détail par niveau reste.</p>
+
+<h3>7.4 Score de qualité /100 et grade</h3>
+
+<p>Le score synthétise l'état global d'un projet en <strong>une note /100</strong> et une</p>
+<p>lettre <strong>A → F</strong>. Il est calculé par <code>scanner/scorer.py</code> :</p>
+
+<pre><code>WEIGHTS      = {critical: 5, high: 2, medium: 1, low: 0.5}
+densité      = Σ(poids[sev] × nb[sev]) / fichiers
+crit_ratio   = nb(critical) / fichiers
+raw          = 100 / (1 + densité/15.5) × (1 − 0.5 × crit_ratio)
+score        = clamp(round(raw), 0, 100)</code></pre>
+
+<table>
+<tr>
+<th>Points clés</th>
+<th>Détail</th>
+</tr>
+<tr>
+<td><strong>Normalisé par taille</strong></td>
+<td>Divisé par le nombre de fichiers → comparable entre projets</td>
+</tr>
+<tr>
+<td><strong>Critiques lourds</strong></td>
+<td>Pénalité proportionnelle en plus : <code>critical</code> pèse 5 et fait tomber la note (pénalité × nb critiques)</td>
+</tr>
+<tr>
+<td><strong>Lettres</strong></td>
+<td><code>A ≥ 90</code>, <code>B ≥ 80</code>, <code>C ≥ 70</code>, <code>D ≥ 40</code>, <code>F &lt; 40</code> (grille 5 crans, reproduit « 49/100 D » du rapport de référence)</td>
+</tr>
+<tr>
+<td><strong>Domaine</strong></td>
+<td><code>security</code> (injection/xss/secrets/security_misc/dependencies), <code>quality</code> (code_quality), <code>performance</code></td>
+</tr>
+</table>
+
+<p>Le score est calculé sur <strong>l'ensemble des findings dédupliqués</strong>, <strong>avant</strong></p>
+<p>filtrage <code>--severity-min</code> : la note reflète l'état réel du projet, pas ce qui</p>
+<p>est affiché dans le listing.</p>
+
+<hr>
+
+<h2>8. Codes de sortie</h2>
+
+<table>
+<tr>
+<th>Code</th>
+<th>Signification</th>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>Analyse terminée, <strong>aucune</strong> faille critique ou haute détectée.</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Analyse terminée avec <strong>au moins une faille critique/haute</strong>, OU erreur d'exécution (dossier/repo introuvable, clonage échoué, règles illisibles, écriture impossible).</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>Erreur d'<strong>utilisation</strong> de la CLI (cible manquante, format <code>--output</code> invalide).</td>
+</tr>
+</table>
+
+<p>Le code 1 en présence de failles permet d'<strong>interrompre un pipeline CI</strong></p>
+<p>(voir §13). Pour distinguer une vraie erreur d'une simple présence de failles,</p>
+<p>vérifiez la présence du message <code>[ERREUR]</code> dans la sortie stderr.</p>
+
+<hr>
+
+<h2>9. Référence des règles</h2>
+
+<h3>9.1 Analyseur Python (AST) — fichier <code>.py</code></h3>
+
+<table>
+<tr>
+<th>ID</th>
+<th>Sévérité</th>
+<th>Détection</th>
+</tr>
+<tr>
+<td><code>py-dangerous-eval</code></td>
+<td>critical / high</td>
+<td><code>eval()</code> / <code>exec()</code> (critical si l'argument vient de <code>input()</code>)</td>
+</tr>
+<tr>
+<td><code>py-pickle-load</code></td>
+<td>high</td>
+<td><code>pickle.loads/load</code>, <code>marshal.loads/load</code>, <code>yaml.load</code></td>
+</tr>
+<tr>
+<td><code>py-subprocess-shell</code></td>
+<td>high</td>
+<td><code>subprocess.*(…, shell=True)</code></td>
+</tr>
+<tr>
+<td><code>py-sql-injection</code></td>
+<td>high</td>
+<td>requête SQL concaténée, f-string ou <code>%</code></td>
+</tr>
+<tr>
+<td><code>py-hardcoded-secret</code></td>
+<td>high</td>
+<td>variable nommée <code>password</code>/<code>api_key</code>/<code>secret</code>/<code>token</code> = littéral</td>
+</tr>
+<tr>
+<td><code>py-os-system</code></td>
+<td>high</td>
+<td><code>os.system()</code> / <code>os.popen()</code></td>
+</tr>
+<tr>
+<td><code>py-bare-except</code></td>
+<td>medium</td>
+<td><code>except:</code> sans type</td>
+</tr>
+<tr>
+<td><code>py-assert-security</code></td>
+<td>medium</td>
+<td><code>assert</code> sur un contrôle de privilège (désactivé avec <code>-O</code>)</td>
+</tr>
+<tr>
+<td><code>py-dangerous-import</code></td>
+<td>medium</td>
+<td>import de <code>pickle</code>, <code>marshal</code>, <code>shelve</code>, <code>telnetlib</code></td>
+</tr>
+<tr>
+<td><code>py-long-function</code></td>
+<td>low</td>
+<td>fonction &gt; <strong>50</strong> lignes</td>
+</tr>
+<tr>
+<td><code>py-high-complexity</code></td>
+<td>medium</td>
+<td>complexité cyclomatique &gt; <strong>10</strong></td>
+</tr>
+<tr>
+<td><code>py-cognitive-complexity</code></td>
+<td>medium</td>
+<td>complexité <strong>cognitive</strong> &gt; 15</td>
+</tr>
+<tr>
+<td><code>py-deep-nesting</code></td>
+<td>medium</td>
+<td>imbrication &gt; 4 niveaux</td>
+</tr>
+<tr>
+<td><code>py-too-many-params</code></td>
+<td>medium</td>
+<td>plus de 4 paramètres</td>
+</tr>
+<tr>
+<td><code>py-else-after-return</code></td>
+<td>medium</td>
+<td>bloc <code>else</code> après un <code>return</code> dans le <code>if</code></td>
+</tr>
+<tr>
+<td><code>py-redundant-boolean</code></td>
+<td>low</td>
+<td><code>x == True</code> / <code>x is False</code> (préférer <code>x</code>)</td>
+</tr>
+<tr>
+<td><code>py-empty-except</code></td>
+<td>medium</td>
+<td>bloc <code>except</code> sans aucune instruction</td>
+</tr>
+<tr>
+<td><code>py-request-without-timeout</code></td>
+<td>medium</td>
+<td><code>requests.*()</code> sans <code>timeout</code> (blocage possible, DoS)</td>
+</tr>
+<tr>
+<td><code>py-verify-false</code></td>
+<td>high</td>
+<td><code>requests.*(…, verify=False)</code> : vérification TLS désactivée</td>
+</tr>
+<tr>
+<td><code>py-weak-hash</code></td>
+<td>medium</td>
+<td><code>hashlib.md5/sha1</code> (ou <code>hashlib.new("md5")</code>)</td>
+</tr>
+<tr>
+<td><code>py-insecure-random</code></td>
+<td>medium</td>
+<td><code>random.*</code> pour un jeton/clé/mot de passe (contexte sécurité)</td>
+</tr>
+<tr>
+<td><code>py-xml-unsafe</code></td>
+<td>high</td>
+<td>parsing XML sans <code>defusedxml</code> importé (risque XXE/bombe XML)</td>
+</tr>
+<tr>
+<td><code>py-tempfile-mktemp</code></td>
+<td>medium</td>
+<td><code>tempfile.mktemp()</code> (nom prévisible, course)</td>
+</tr>
+</table>
+
+<h3>9.2 Analyseur générique (regex) — multi-langages</h3>
+
+<table>
+<tr>
+<th>ID</th>
+<th>Langages</th>
+<th>Sévérité</th>
+<th>Détection</th>
+</tr>
+<tr>
+<td><code>generic-sql-injection</code></td>
+<td>php, js, ts, java, c#, ruby, go…</td>
+<td>high</td>
+<td>requête SQL construite dynamiquement</td>
+</tr>
+<tr>
+<td><code>generic-xss-innerhtml</code></td>
+<td>js, ts, html</td>
+<td>high</td>
+<td><code>.innerHTML =</code></td>
+</tr>
+<tr>
+<td><code>generic-xss-dangerouslyset</code></td>
+<td>js, ts</td>
+<td>high</td>
+<td><code>dangerouslySetInnerHTML</code> (React)</td>
+</tr>
+<tr>
+<td><code>generic-xss-document-write</code></td>
+<td>js, ts</td>
+<td>high</td>
+<td><code>document.write()</code></td>
+</tr>
+<tr>
+<td><code>generic-xss-vhtml</code></td>
+<td>js, ts</td>
+<td>medium</td>
+<td>directive Vue <code>v-html</code></td>
+</tr>
+<tr>
+<td><code>generic-eval</code></td>
+<td>js, ts, php</td>
+<td>high</td>
+<td><code>eval()</code></td>
+</tr>
+<tr>
+<td><code>generic-php-unserialize</code></td>
+<td>php</td>
+<td>critical</td>
+<td><code>unserialize()</code></td>
+</tr>
+<tr>
+<td><code>generic-command-exec</code></td>
+<td>php, ruby, bash</td>
+<td>high</td>
+<td><code>shell_exec</code>, <code>system</code>, <code>passthru</code>, <code>popen</code>…</td>
+</tr>
+<tr>
+<td><code>generic-node-child-process</code></td>
+<td>js, ts</td>
+<td>high</td>
+<td><code>child_process.exec/spawn</code></td>
+</tr>
+<tr>
+<td><code>generic-node-child-process-import</code></td>
+<td>js, ts</td>
+<td>medium</td>
+<td>import de <code>child_process</code></td>
+</tr>
+<tr>
+<td><code>generic-js-exec-call</code></td>
+<td>js, ts</td>
+<td>medium</td>
+<td>appel <code>exec()</code> (à vérifier)</td>
+</tr>
+<tr>
+<td><code>generic-java-runtime-exec</code></td>
+<td>java, kotlin</td>
+<td>high</td>
+<td><code>Runtime.exec</code>, <code>ProcessBuilder</code></td>
+</tr>
+<tr>
+<td><code>generic-secret-assignment</code></td>
+<td>non-Python</td>
+<td>high</td>
+<td>secret affecté en dur</td>
+</tr>
+<tr>
+<td><code>generic-todo-fixme</code></td>
+<td>tous</td>
+<td>low</td>
+<td><code>TODO</code>, <code>FIXME</code>, <code>HACK</code>, <code>XXX</code></td>
+</tr>
+<tr>
+<td><code>generic-cors-permissive</code></td>
+<td>php, js, ts, python</td>
+<td>high</td>
+<td><code>Access-Control-Allow-Origin: *</code></td>
+</tr>
+<tr>
+<td><code>generic-regex-dos</code></td>
+<td>js, ts</td>
+<td>high</td>
+<td><code>new RegExp(...)</code> sur valeur non-littérale (risque ReDoS)</td>
+</tr>
+<tr>
+<td><code>generic-php-superglobal-input</code></td>
+<td>php</td>
+<td>medium</td>
+<td>lecture brute de <code>$_GET</code>/<code>$_POST</code>/<code>$_REQUEST</code></td>
+</tr>
+<tr>
+<td><code>generic-sql-select-star</code></td>
+<td>sql, php, js</td>
+<td>medium</td>
+<td>requête <code>SELECT *</code> non ciblée</td>
+</tr>
+<tr>
+<td><code>generic-weak-crypto</code></td>
+<td>php, js, ts, java, c#, go, ruby…</td>
+<td>medium</td>
+<td><code>md5</code>/<code>sha1</code>/<code>DES</code>/<code>RC4</code>… y compris <code>createHash("sha1")</code> et <code>MessageDigest.getInstance("MD5")</code></td>
+</tr>
+<tr>
+<td><code>generic-php-xxe</code></td>
+<td>php</td>
+<td>high</td>
+<td><code>simplexml_load_*</code>, <code>-&gt;loadXML</code> (risque XXE)</td>
+</tr>
+<tr>
+<td><code>generic-path-traversal</code></td>
+<td>php, js, ts, python, java…</td>
+<td>medium</td>
+<td>chemin de fichier construit par concaténation (<code>fopen("up/" . $n)</code>, <code>readFileSync("d/" + f)</code>)</td>
+</tr>
+<tr>
+<td><code>generic-php-insecure-rand</code></td>
+<td>php</td>
+<td>low</td>
+<td><code>rand()</code>/<code>mt_rand()</code> (préférer <code>random_int</code>)</td>
+</tr>
+</table>
+
+<h3>9.2b Analyseur de qualité (à accolades + Python)</h3>
+
+<p>Les IDs ci-dessous portent le préfixe du langage : <code>js-*</code> pour le</p>
+<p>JavaScript, <code>ts-*</code> pour TypeScript, <code>php-*</code>, <code>java-*</code>, <code>csharp-*</code>, <code>go-*</code>,</p>
+<p><code>kotlin-*</code>, <code>scala-*</code>, <code>rust-*</code>, <code>swift-*</code>, <code>c-*</code>, <code>cpp-*</code>… (<code>py-*</code> sur</p>
+<p>Python, via AST — voir §9.1). Seuils centralisés dans</p>
+<p><code>scanner/thresholds.py</code>.</p>
+
+<table>
+<tr>
+<th>Règle (préfixé)</th>
+<th>Sév</th>
+<th>Seuil</th>
+<th>Détection</th>
+</tr>
+<tr>
+<td><code>*-function-too-long</code></td>
+<td>low</td>
+<td>50 lignes</td>
+<td>fonction trop longue</td>
+</tr>
+<tr>
+<td><code>*-cognitive-complexity</code></td>
+<td>medium</td>
+<td>15</td>
+<td>complexité cognitive élevée</td>
+</tr>
+<tr>
+<td><code>*-high-complexity</code></td>
+<td>medium</td>
+<td>10</td>
+<td>complexité cyclomatique élevée</td>
+</tr>
+<tr>
+<td><code>*-deep-nesting</code></td>
+<td>medium</td>
+<td>4</td>
+<td>imbrication excessive</td>
+</tr>
+<tr>
+<td><code>*-too-many-params</code></td>
+<td>medium</td>
+<td>4</td>
+<td>trop de paramètres</td>
+</tr>
+<tr>
+<td><code>*-long-line</code></td>
+<td>low</td>
+<td>120</td>
+<td>ligne trop longue</td>
+</tr>
+<tr>
+<td><code>*-file-too-long</code></td>
+<td>low</td>
+<td>500</td>
+<td>fichier trop long</td>
+</tr>
+<tr>
+<td><code>*-redundant-boolean</code></td>
+<td>low</td>
+<td>—</td>
+<td><code>x == true</code> / <code>x === false</code></td>
+</tr>
+<tr>
+<td><code>*-loose-equality</code></td>
+<td>low</td>
+<td>—</td>
+<td><code>==</code> (préférer <code>===</code>)</td>
+</tr>
+<tr>
+<td><code>*-else-after-return</code></td>
+<td>medium</td>
+<td>—</td>
+<td><code>else</code> après un <code>return</code></td>
+</tr>
+<tr>
+<td><code>*-empty-catch</code></td>
+<td>medium</td>
+<td>—</td>
+<td>bloc <code>catch</code> vide (erreurs avalées)</td>
+</tr>
+<tr>
+<td><code>*-commented-out-code</code></td>
+<td>low</td>
+<td>≥ 3 lignes</td>
+<td>code commenté (probablement mort)</td>
+</tr>
+<tr>
+<td><code>*-magic-number</code></td>
+<td>low</td>
+<td>—</td>
+<td>nombre littéral non nommé (conservateur)</td>
+</tr>
+<tr>
+<td><code>*-no-debug-console</code></td>
+<td>low</td>
+<td>—</td>
+<td><code>console.log/warn/error</code> (débogage)</td>
+</tr>
+<tr>
+<td><code>*-no-alert</code></td>
+<td>low</td>
+<td>—</td>
+<td><code>alert</code>/<code>confirm</code>/<code>prompt</code></td>
+</tr>
+<tr>
+<td><code>*-deep-clone-json</code></td>
+<td>medium</td>
+<td>—</td>
+<td>copie profonde via <code>JSON.parse(JSON.stringify(x))</code></td>
+</tr>
+<tr>
+<td><code>perf-blocking-sync-io</code></td>
+<td>high</td>
+<td>—</td>
+<td><code>readFileSync</code>/<code>execSync</code>… bloquants (hors init/connexion)</td>
+</tr>
+<tr>
+<td><code>perf-io-in-loop</code></td>
+<td>medium</td>
+<td>—</td>
+<td><code>await fetch/query</code> dans une boucle (N+1) hors <code>Promise.all</code></td>
+</tr>
+<tr>
+<td><code>perf-quadratic-loop</code></td>
+<td>medium</td>
+<td>—</td>
+<td><code>.includes()</code>/<code>indexOf</code> dans une boucle sur tableau (O(n²))</td>
+</tr>
+</table>
+
+<blockquote>Les métriques de fonction JS/PHP/etc. sont calculées par équilibrage</blockquote>
+<blockquote>d'accolades sur un code masqué (chaînes/commentaires/templates) : les</blockquote>
+<blockquote>valeurs sont <strong>indicatives</strong>. Les anti-faux-positifs ignorent les appels</blockquote>
+<blockquote>dans les fonctions <code>config</code>/<code>init</code>/<code>load</code>, <code>Promise.all</code>, <code>for await</code>, les</blockquote>
+<blockquote>caches <code>Map</code>/<code>Set</code> et les littéraux de constantes.</blockquote>
+
+<h3>9.3 Détecteur de secrets</h3>
+
+<table>
+<tr>
+<th>ID</th>
+<th>Sévérité</th>
+<th>Détection</th>
+</tr>
+<tr>
+<td><code>secret-aws-access-key</code></td>
+<td>critical</td>
+<td><code>AKIA…</code> / <code>ASIA…</code> (20 car.)</td>
+</tr>
+<tr>
+<td><code>secret-aws-secret-key</code></td>
+<td>critical</td>
+<td><code>aws_secret_access_key = "…40 car.…"</code></td>
+</tr>
+<tr>
+<td><code>secret-github-token</code></td>
+<td>critical</td>
+<td><code>ghp_…</code>, <code>github_pat_…</code></td>
+</tr>
+<tr>
+<td><code>secret-stripe</code></td>
+<td>critical</td>
+<td><code>sk_live_…</code>, <code>rk_live_…</code></td>
+</tr>
+<tr>
+<td><code>secret-private-key</code></td>
+<td>critical</td>
+<td>bloc <code>-----BEGIN … PRIVATE KEY-----</code></td>
+</tr>
+<tr>
+<td><code>secret-google-api</code></td>
+<td>high</td>
+<td><code>AIza…</code> (39 car.)</td>
+</tr>
+<tr>
+<td><code>secret-slack-token</code></td>
+<td>high</td>
+<td><code>xox[baprs]-…</code></td>
+</tr>
+<tr>
+<td><code>secret-npm-token</code></td>
+<td>high</td>
+<td><code>npm_…</code></td>
+</tr>
+<tr>
+<td><code>secret-bearer</code></td>
+<td>high</td>
+<td><code>Bearer &lt;jeton&gt;</code></td>
+</tr>
+<tr>
+<td><code>secret-slack-webhook</code></td>
+<td>high</td>
+<td>URL <code>hooks.slack.com/services/…</code></td>
+</tr>
+<tr>
+<td><code>secret-jwt</code></td>
+<td>medium</td>
+<td>JWT <code>eyJ…</code></td>
+</tr>
+<tr>
+<td><code>secret-high-entropy</code></td>
+<td>low</td>
+<td>chaîne ≥ 16 car. à forte entropie (Shannon ≥ 4,5)</td>
+</tr>
+<tr>
+<td><code>config-plaintext-secret</code></td>
+<td>high</td>
+<td>secret en clair dans <code>.env</code>/<code>.json</code>/<code>.yml</code>/<code>.ini</code></td>
+</tr>
+</table>
+
+<h3>9.4 Dépendances</h3>
+
+<table>
+<tr>
+<th>ID</th>
+<th>Sévérité</th>
+<th>Détection</th>
+</tr>
+<tr>
+<td><code>dep-cve</code></td>
+<td>de critical à low</td>
+<td>CVE d'un paquet via OSV.dev (sévérité déduite du score CVSS ou du niveau GHSA)</td>
+</tr>
+</table>
+
+<p>Manifestes supportés : <code>requirements*.txt</code>, <code>package.json</code>, <code>composer.json</code>,</p>
+<p><code>Gemfile</code>, <code>go.mod</code>, <strong><code>Pipfile</code></strong>, <strong><code>Cargo.toml</code></strong>, <strong><code>pom.xml</code></strong>.</p>
+
+<h3>9.5 Catégories</h3>
+
+<p><code>injection</code> · <code>secrets</code> · <code>xss</code> · <code>code_quality</code> · <code>security_misc</code> ·</p>
+<p><code>performance</code> · <code>dependencies</code></p>
+
+<p>Ces catégories sont regroupées en <strong>domaines</strong> de score : <code>security</code></p>
+<p>(injection, secrets, xss, security_misc, dependencies), <code>quality</code></p>
+<p>(code_quality), <code>performance</code>.</p>
+
+<hr>
+
+<h2>10. Personnalisation des règles</h2>
+
+<p>Toutes les règles <strong>regex</strong> vivent dans <code>rules/patterns.json</code> : vous pouvez en</p>
+<p>ajouter, modifier ou retirer <strong>sans toucher au code</strong>.</p>
+
+<h3>Schéma d'une entrée <code>generic</code> (source)</h3>
+
+<pre><code>{
+  "id": "generic-hash-faible",
+  "category": "security_misc",
+  "severity": "medium",
+  "languages": ["php", "javascript"],
+  "pattern": "(?i)\\b(md5|sha1)\\s*\\(",
+  "title": "Fonction de hachage faible",
+  "description": "md5/sha1 ne sont pas sûrs pour les mots de passe.",
+  "recommendation": "Utiliser bcrypt, argon2 ou au minimum sha256 avec sel."
+}</code></pre>
+
+<h3>Schéma d'une entrée <code>secrets</code></h3>
+
+<pre><code>{
+  "id": "secret-nouvelle-cle",
+  "name": "Clé privée NouveauService",
+  "category": "secrets",
+  "severity": "critical",
+  "pattern": "\\bNS_[A-Za-z0-9]{24}\\b",
+  "title": "Clé NouveauService exposée",
+  "description": "Une clé d'API NouveauService est visible dans le code.",
+  "recommendation": "Révoquer la clé et utiliser l'environnement."
+}</code></pre>
+
+<h3>Champs disponibles</h3>
+
+<table>
+<tr>
+<th>Champ</th>
+<th>Règles <code>generic</code></th>
+<th>Règles <code>secrets</code></th>
+<th>Obligatoire</th>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>oui</td>
+</tr>
+<tr>
+<td><code>category</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>oui</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>oui</td>
+</tr>
+<tr>
+<td><code>pattern</code> (regex)</td>
+<td>✓</td>
+<td>✓</td>
+<td>oui, sauf règles <code>builtin</code></td>
+</tr>
+<tr>
+<td><code>languages</code> (liste)</td>
+<td>✓</td>
+<td>✗ (scan global)</td>
+<td>non</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>oui</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>recommandé</td>
+</tr>
+<tr>
+<td><code>recommendation</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>recommandé</td>
+</tr>
+<tr>
+<td><code>builtin</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>non (<code>entropy</code> pour les secrets)</td>
+</tr>
+</table>
+
+<h3>Règles <code>builtin</code> (calculées par le code)</h3>
+
+<p>Une seule règle reste « builtin » dans le stock : <code>entropy</code> (détection des</p>
+<p>chaînes à forte entropie dans la section <code>secrets</code>). Elle n'a pas de</p>
+<p><code>pattern</code> mais un champ <code>builtin: "entropy"</code>.</p>
+
+<p>Les métriques de fonction (longueur, complexité, imbrication…) ne sont</p>
+<p><strong>plus</strong> des patterns : elles sont calculées directement par</p>
+<p><code>scanner/python_analyzer.py</code> (AST, exact) et <code>scanner/quality_analyzer.py</code></p>
+<p>(accolades, heuristique). Réglez leurs seuils dans <strong><code>scanner/thresholds.py</code></strong></p>
+<p>(le JSON de règles ne les contient pas).</p>
+
+<blockquote><strong>Validation</strong> : CodeScan ignore une règle dont la regex est invalide et</blockquote>
+<blockquote>l'indique dans la console (<code>pattern invalide</code>), sans interrompre l'analyse.</blockquote>
+
+<hr>
+
+<h2>11. Exécution des tests</h2>
+
+<pre><code>cd codescan
+python -m unittest discover tests -v</code></pre>
+
+<p>La suite (<strong>~240 tests</strong>) couvre :</p>
+
+<ul><li>chaque règle de l'analyseur Python sur du code vulnérable <strong>et</strong> du code sain (anti-faux-positifs), y compris les nouvelles règles de qualité (complexité cognitive, imbrication, paramètres, <code>else</code> après <code>return</code>…) ;</li></ul>
+<ul><li>les règles regex génériques (SQL, XSS, eval, TODO, CORS, ReDoS…) ;</li></ul>
+<ul><li>l'analyseur de qualité (métriques de fonction JS/PHP, lignes longues, async/perf, anti-faux-positifs <code>Promise.all</code>/config) ;</li></ul>
+<ul><li>le détecteur de secrets (AWS, GitHub, Stripe, entropie, placeholders) ;</li></ul>
+<ul><li>le crawler (dossiers ignorés, binaires, détection de langage) ;</li></ul>
+<ul><li>le parsing des manifestes et le calcul des scores CVSS ;</li></ul>
+<ul><li>le calcul du score /100 (calibration sur la référence Herald → 49/100 D, bandes A–F, domaines) et du rapport HTML (hero, cartes, niveaux, échappement, CSS print) ;</li></ul>
+<ul><li>le filtrage par sévérité.</li></ul>
+
+<hr>
+
+<h2>12. Dépannage et FAQ</h2>
+
+<h3>« <code>python</code> n'est pas reconnu » (Windows)</h3>
+<p>Le lanceur <code>py</code> est installé avec Python : utilisez <code>py main.py …</code>.</p>
+<p>Sinon, désactivez l'alias « App execution alias » dans les paramètres Windows.</p>
+
+<h3>« git clone a échoué : Repository not found »</h3>
+<p>L'URL est invalide ou le dépôt est privé. CodeScan ne gère <strong>pas</strong></p>
+<p>l'authentification : utilisez un dépôt public ou clonez-le d'abord</p>
+<p>manuellement puis analysez-le avec <code>--path</code>.</p>
+
+<h3>« OSV.dev indisponible »</h3>
+<p>Le réseau est coupé ou le service est en maintenance. CodeScan l'indique dans</p>
+<p>la console et <strong>continue</strong> l'analyse sans la partie dépendances. Utilisez</p>
+<p><code>--no-deps</code> pour un fonctionnement hors ligne sans message d'erreur.</p>
+
+<h3>« Le rapport affiche beaucoup de faux positifs »</h3>
+<ul><li>Les heuristiques (<code>generic-long-function</code>, <code>generic-high-complexity</code>, <code>secret-high-entropy</code>) sont des <strong>indicateurs</strong>, pas des certitudes : vérifiez chaque résultat.</li></ul>
+<ul><li>Réduisez le bruit avec <code>--severity-min=medium</code> ou <code>--severity-min=high</code>.</li></ul>
+
+<h3>« Un fichier n'est pas analysé »</h3>
+<p>Vérifiez qu'il n'est pas dans un dossier ignoré (<code>node_modules/</code>, <code>.git/</code>,</p>
+<p><code>venv/</code>, <code>__pycache__/</code>…), qu'il ne fait pas plus de 2 Mo et que son</p>
+<p>extension est reconnue (voir <code>LANG_BY_EXT</code> dans <code>scanner/crawler.py</code>).</p>
+
+<h3>« Les caractères accentués sont mal affichés dans la console »</h3>
+<p>L'affichage est forcé en UTF-8 par CodeScan. Si le terminal ne le supporte</p>
+<p>pas, définissez <code>PYTHONIOENCODING=utf-8</code> ou activez le terminal UTF-8.</p>
+
+<h3>« Comment supprimer les secrets de l'historique git ? »</h3>
+<p>CodeScan les détecte, mais il ne les efface pas. Après correction du code,</p>
+<p>régénérez l'historique (<code>git filter-repo</code>), <strong>révoquez</strong> les secrets exposés</p>
+<p>sur le service concerné, puis ajoutez les fichiers à <code>.gitignore</code>.</p>
+
+<hr>
+
+<h2>13. Intégration CI/CD</h2>
+
+<p>Exemple d'étape GitHub Actions :</p>
+
+<pre><code>- name: Analyser le code avec CodeScan
+  run: |
+    pip install -r requirements.txt
+    python main.py --path . --output codescan.json --severity-min=high
+  # Le workflow échoue si des failles haute/critique sont détectées
+  # (code de sortie 1).
+- name: Archiver le rapport
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: codescan-report
+    path: codescan.json</code></pre>
+
+<p>Le rapport JSON est alors exploitable par d'autres étapes (diff de résultats,</p>
+<p>notification, tableau de bord).</p>
+
+<hr>
+
+<h2>14. Limites connues</h2>
+
+<ol><li><strong>Heuristiques approximatives</strong> — la longueur et la complexité des fonctions (JS/PHP/Java/C#/Go…) reposent sur un équilibrage d'accolades : à confirmer par un humain.</li></ol>
+<ol><li><strong>Contraintes de version « plage »</strong> — une dépendance déclarée avec <code>&gt;=</code> ou <code>^</code> est vérifiée par sa <strong>version minimale</strong> : une CVE introduite plus tard dans la plage peut être manquée.</li></ol>
+<ol><li><strong>Secrets par entropie</strong> — <code>secret-high-entropy</code> produit des résultats potentiellement faux : toujours vérifier avant suppression.</li></ol>
+<ol><li><strong>Pas d'analyse sémantique multi-fichiers</strong> — CodeScan analyse fichier par fichier : un flux de données traversant plusieurs fichiers (une entrée utilisateur « sale » utilisée loin de sa source) n'est pas suivi.</li></ol>
+<ol><li><strong>Encodage</strong> — les fichiers non-UTF-8 sont relus en latin-1 : l'analyse reste possible mais les extraits (<code>snippet</code>) peuvent être dégradés.</li></ol>
+
+<hr>
+
+<h2>15. Mode IRON MAN AI — audit Kali (sites web)</h2>
+
+<p>L'outil de web audit s'appelle <strong>IRON MAN AI</strong> et s'utilise depuis une</p>
+<p>machine <strong>Kali Linux</strong>. Il pilote <strong>tous les outils de sécurité disponibles</strong></p>
+<p>contre un site web et <strong>réunit les failles</strong> dans le même style de rapport</p>
+<p>(HTML /100, JSON ou PDF). C'est un <strong>module séparé</strong> de <code>main.py</code> : il ne</p>
+<p>modifie pas le comportement de l'analyse statique.</p>
+
+<h3>15.1 LA commande unique — audit complet en PDF</h3>
+
+<p>Une <strong>seule commande</strong> lance <strong>tout l'audit ensemble</strong> : tous les outils</p>
+<p>(web <strong>et</strong> invasifs), l'un après l'autre, <strong>au maximum</strong>, <strong>sans limite de temps d'analyse</strong>, avec toutes les autorisations requises, et produit</p>
+<p><strong>l'audit complet en PDF</strong> (plus JSON et HTML) :</p>
+
+<pre><code>uv run python ironman.py --url https://exemple.com --authorized</code></pre>
+
+<p>C'est l'équivalent de</p>
+<p><code>kali_scan.py --url … --authorized --full --attack --pdf</code> : mode maximal</p>
+<p>(wordlist complète, <code>nmap -p- -sC</code>, threads élevés, <strong>aucun timeout</strong>,</p>
+<p>sqlmap <code>--level 3 --risk 3</code>) et rapport PDF 100 % stdlib (aucun navigateur</p>
+<p>requis). Utilisez <code>--tools</code> / <code>--exclude</code> / <code>--dry-run</code> pour restreindre,</p>
+<p>et <code>--check</code> d'abord pour vérifier que tout est installé.</p>
+
+<h3>15.2 Préflight (<code>--check</code>)</h3>
+
+<p>Vérifie la présence de chaque binaire (<code>nmap</code>, <code>nikto</code>, <code>whatweb</code>,</p>
+<p><code>gobuster</code>, <code>dirsearch</code>, <code>sslscan</code>, <code>nuclei</code>, <code>wafw00f</code>, <code>dnsrecon</code>…).</p>
+<p>Pour tout outil manquant, il affiche une commande</p>
+<p><code>sudo apt-get install -y &lt;paquet&gt;</code> exacte à copier.</p>
+
+<pre><code>uv run python kali_scan.py --check            # outils web présents ?
+uv run python kali_scan.py --check --attack   # + sqlmap, xsstrike, commix, hydra</code></pre>
+
+<h3>15.3 Scan normal (<code>kali_scan.py</code>)</h3>
+
+<p>Le flag <code>--authorized</code> est <strong>obligatoire</strong> (confirme que la cible est</p>
+<p>autorisée). Les outils <strong>invasifs</strong> sont exclus par défaut et ne tournent</p>
+<p>qu'avec <code>--attack</code> (hydra exige en plus les wordlists <code>--hydra-users</code> /</p>
+<p><code>--hydra-passwords</code>).</p>
+
+<pre><code>uv run python kali_scan.py --url https://exemple.com --authorized \
+    --output rapport_web.html</code></pre>
+
+<p>Options utiles : <code>--dry-run</code> (affiche les commandes sans exécuter),</p>
+<p><code>--tools nmap,nuclei</code> / <code>--exclude nmap</code> (filtrer), <code>--allow-missing</code></p>
+<p>(continuer malgré un outil manquant), <code>--keep-tmp</code> (conserver les logs</p>
+<p>bruts par outil), <code>--pdf</code> (produire aussi le rapport PDF). Le <strong>code de sortie</strong> est identique au mode statique : <code>0</code> aucun relevé critique/haute,</p>
+<p><code>1</code> sinon, <code>2</code> erreur d'usage.</p>
+
+<p>Un <strong>serveur local volontairement vulnérable</strong> est fourni pour s'initier en</p>
+<p>toute sécurité :</p>
+
+<pre><code>uv run python examples/vuln_server.py --port 8123
+uv run python kali_scan.py --url http://127.0.0.1:8123 --authorized \
+    --output rapport_web.html --allow-missing</code></pre>
+
+<blockquote>📖 <strong>Manuel complet (Kali)</strong> : <code>docs/MANUEL_KALI.md</code> · <strong>Manuel Windows</strong> :</blockquote>
+<blockquote><code>docs/MANUEL_WINDOWS.md</code>. Le manuel Kali se convertit en PDF via</blockquote>
+<blockquote><code>docs/make_pdf.py</code> (Chrome/Edge headless, sinon « Imprimer en PDF »).</blockquote>
+
+<hr>
+
+<p>*Documentation générée pour IRON MAN AI (CodeScan) 1.4.0. Le README contient</p>
+<p>une version condensée ; ce manuel fait référence pour l'usage détaillé.*</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div><div class="section">
+<h1>IRON MAN AI — Guide Windows</h1>
+<h1>Manuel d'utilisation — CodeScan sur Windows</h1>
+
+<p>Ce manuel explique comment utiliser <strong>CodeScan</strong> (analyseur statique de</p>
+<p>code, <strong>sans API d'IA</strong>) sur <strong>Windows</strong>, pour auditer vos projets locaux,</p>
+<p>générer des rapports HTML/JSON, comprendre la note /100 et utiliser le</p>
+<p>mode « IRON MAN AI » (audit web Kali) si vous avez des outils de sécurité</p>
+<p>dans le PATH.</p>
+
+<blockquote>CodeScan est un outil de <strong>défense</strong> : analysez vos propres projets ou</blockquote>
+<blockquote>ceux que vous êtes autorisé à auditer.</blockquote>
+
+<hr>
+
+<h2>1. Installation</h2>
+
+<ol><li>Installez <strong>Python 3.10+</strong> depuis [python.org](https://python.org) (cochez « Add Python to PATH » lors de l'installation).</li></ol>
+<ol><li>Décompressez le dossier <code>codescan</code> où vous voulez.</li></ol>
+<ol><li>(Optionnel) Installez <code>requests</code> uniquement si vous voulez la vérification des CVE de dépendances via OSV.dev :</li></ol>
+
+<pre><code>pip install -r requirements.txt</code></pre>
+
+<blockquote>Le cœur de CodeScan n'utilise <strong>que la bibliothèque standard</strong> : aucune</blockquote>
+<blockquote>dépendance obligatoire.</blockquote>
+
+<hr>
+
+<h2>2. Premier scan statique</h2>
+
+<p>Ouvrez PowerShell (ou Git Bash) dans le dossier <code>codescan</code> et lancez :</p>
+
+<pre><code>uv run python main.py --path .\examples --output rapport.html</code></pre>
+
+<p>Vous obtenez dans le terminal le <strong>résumé console</strong> et, dans <code>rapport.html</code>,</p>
+<p>la <strong>note /100</strong> (avec sa lettre A→F), des cartes de synthèse, les findings</p>
+<p><strong>groupés par niveau</strong> (CRITIQUE / À REVOIR / MINEUR) et la répartition par</p>
+<p>catégorie.</p>
+
+<h3>Comprendre la note /100</h3>
+
+<table>
+<tr>
+<th>Élément</th>
+<th>Détail</th>
+</tr>
+<tr>
+<td>Formule</td>
+<td><code>100 / (1 + densité/K) × (1 − 0,5 × proportion de critiques)</code></td>
+</tr>
+<tr>
+<td>Pondérations</td>
+<td>critical=5, high=2, medium=1, low=0.5</td>
+</tr>
+<tr>
+<td>Lettres</td>
+<td>A≥90, B≥80, C≥70, D≥40, F&lt;40</td>
+</tr>
+<tr>
+<td>Domaines</td>
+<td>Sécurité, Qualité, Performance</td>
+</tr>
+</table>
+
+<p>Plus il y a de résultats graves, plus la note baisse. Le score est calculé</p>
+<p>sur <strong>l'ensemble des résultats dédupliqués</strong>, indépendamment du filtre</p>
+<p><code>--severity-min</code>.</p>
+
+<hr>
+
+<h2>3. Options principales</h2>
+
+<pre><code># Analyser un dossier local
+uv run python main.py --path C:\mon\projet
+
+# Analyser un dépôt GitHub (cloné puis nettoyé)
+uv run python main.py --repo https://github.com/user/repo
+
+# Rapport JSON structuré, filtré aux failles haute/critique
+uv run python main.py --path C:\mon\projet --output scan.json --severity-min=high
+
+# Sans qualité ni score (pour un audit sécurité pure)
+uv run python main.py --path C:\mon\projet --no-quality --no-score --output scan.html</code></pre>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--path &lt;dossier&gt;</code></td>
+<td>Projet local à analyser</td>
+</tr>
+<tr>
+<td><code>--repo &lt;URL&gt;</code></td>
+<td>Dépôt GitHub à cloner puis analyser</td>
+</tr>
+<tr>
+<td><code>-o, --output &lt;fichier&gt;</code></td>
+<td>Rapport <code>.json</code> ou <code>.html</code></td>
+</tr>
+<tr>
+<td><code>--severity-min {critical,high,medium,low}</code></td>
+<td>Filtre le listing (défaut : low)</td>
+</tr>
+<tr>
+<td><code>--no-deps</code></td>
+<td>Désactive OSV.dev (CVE de dépendances)</td>
+</tr>
+<tr>
+<td><code>--no-quality</code></td>
+<td>Désactive les métriques de qualité</td>
+</tr>
+<tr>
+<td><code>--no-score</code></td>
+<td>Ne calcule ni n'affiche la note /100</td>
+</tr>
+<tr>
+<td><code>--exclude &lt;motif&gt;</code></td>
+<td>Exclut les fichiers dont le chemin contient le motif (répétable, jokers <code>*</code>/<code>?</code>)</td>
+</tr>
+<tr>
+<td><code>-v, --verbose</code></td>
+<td>Sortie détaillée</td>
+</tr>
+<tr>
+<td><code>--version</code></td>
+<td>Version</td>
+</tr>
+</table>
+
+<p><strong>Code de sortie</strong> : <code>0</code> si aucun résultat critique/haute, <code>1</code> sinon</p>
+<p>(utile pour un CI).</p>
+
+<hr>
+
+<h2>4. Imprimer un rapport en PDF (sans dépendance)</h2>
+
+<p>Le rapport HTML est <strong>autonome</strong> (CSS embarqué, aucun accès réseau) et</p>
+<p>optimisé pour l'impression A4.</p>
+
+<ol><li>Ouvrez <code>rapport.html</code> dans <strong>Edge, Chrome ou Firefox</strong>.</li></ol>
+<ol><li><strong>Ctrl+P</strong> → choisissez <strong>« Enregistrer au format PDF »</strong> (destination PDF).</li></ol>
+<ol><li>Vérifiez la mise en page : format <strong>A4</strong>, marges <strong>12 mm</strong>, les cartes et relevés <strong>ne sont pas coupés</strong> (<code>break-inside: avoid</code>).</li></ol>
+
+<blockquote>Les manuels (ce document) peuvent aussi être convertis en PDF via</blockquote>
+<blockquote><code>docs\make_pdf.py</code> (détection automatique d'Edge/Chrome/Chromium en</blockquote>
+<blockquote>headless), ou <code>docs\make_pdf_fpdf2.py</code> avec <code>pip install fpdf2</code>.</blockquote>
+
+<hr>
+
+<h2>5. Mode IRON MAN AI — audit web (Kali, utilisable sous Windows)</h2>
+
+<p>L'audit web s'appelle <strong>IRON MAN AI</strong> (<code>kali_scan.py</code> / <code>ironman.py</code>).</p>
+<p>Il est conçu pour <strong>Kali Linux</strong> ; sous Windows il fonctionne de la même</p>
+<p>façon si les outils sont dans le PATH (nmap, nikto, etc.), sinon le</p>
+<p><strong>préflight</strong> vous le dira et le scan s'arrêtera (ou continuera avec</p>
+<p><code>--allow-missing</code>).</p>
+
+<pre><code># Vérifier les outils disponibles
+uv run python kali_scan.py --check
+
+# LA commande unique : tout l'audit, au maximum, sans limite de temps,
+# avec l'audit complet en PDF (JSON + HTML + PDF)
+uv run python ironman.py --url http://127.0.0.1:8000 --authorized
+
+# Simuler (affiche les commandes sans rien exécuter)
+uv run python kali_scan.py --url http://127.0.0.1:8000 --authorized --dry-run
+
+# Scan raisonnable d'un serveur local vulnérable de démonstration
+uv run python examples\vuln_server.py --port 8123
+uv run python kali_scan.py --url http://127.0.0.1:8123 --authorized --allow-missing</code></pre>
+
+<blockquote>L'audit web est <strong>non invasif par défaut</strong> ; le flag <code>--attack</code> (sqlmap,</blockquote>
+<blockquote>xsstrike, commix, hydra) est réservé aux cibles explicitement autorisées</blockquote>
+<blockquote>(<code>--authorized</code> est obligatoire). Le PDF de l'audit complet est généré</blockquote>
+<blockquote><strong>100 % stdlib</strong> (aucun navigateur requis).</blockquote>
+
+<hr>
+
+<h2>6. Dépannage Windows</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>python</code> introuvable</td>
+<td>Python absent du PATH</td>
+<td>Réinstaller en cochant « Add to PATH »</td>
+</tr>
+<tr>
+<td>Caractères accentués illisibles</td>
+<td>Encodage console</td>
+<td>Le code utilise UTF-8 ; sous vieux terminal, utiliser Windows Terminal</td>
+</tr>
+<tr>
+<td><code>Use uv run python</code></td>
+<td><code>uv</code> actif</td>
+<td>Taper <code>uv run python …</code> (ou désactiver <code>uv</code> local)</td>
+</tr>
+<tr>
+<td><code>--repo</code> échoue</td>
+<td>Git introuvable</td>
+<td>Installer Git for Windows</td>
+</tr>
+<tr>
+<td>Scan web vide</td>
+<td>Outils Kali absents</td>
+<td>Lire <code>kali_scan.py --check</code> et installer les outils</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>7. En résumé</h2>
+
+<ol><li><code>uv run python main.py --path &lt;projet&gt;</code> pour un <strong>audit statique</strong> ;</li></ol>
+<ol><li>ouvrez le HTML → <strong>Ctrl+P</strong> → <strong>Enregistrer en PDF</strong> ;</li></ol>
+<ol><li><code>uv run python ironman.py --url &lt;cible&gt; --authorized</code> pour l'<strong>audit web complet en PDF</strong> (sur Kali, après le <code>--check</code> et l'installation des outils) ; <code>kali_scan.py --url &lt;cible&gt; --authorized</code> pour le scan web « raisonnable ».</li></ol>
+
+<p><strong>Rappel :</strong> <strong>IRON MAN AI</strong> (CodeScan) est un outil de <strong>défense</strong>, destiné</p>
+<p>à vos projets ou à ceux que vous êtes autorisé à auditer.</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div><div class="section">
+<h1>IRON MAN AI — Pentest WiFi</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Audit WiFi</h1>
+
+<p>Le module <strong>WiFi</strong> de IRON MAN AI permet de tester la sécurité d'un réseau</p>
+<p>WiFi que vous possédez (ou pour lequel vous avez une autorisation écrite) :</p>
+<p>scan des réseaux à portée, capture et crack du handshake WPA2, audit WPS,</p>
+<p>recommandations de durcissement.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> Ce module ne s'utilise que sur votre propre</blockquote>
+<blockquote>réseau ou sur un réseau que vous êtes <strong>explicitement autorisé</strong> à</blockquote>
+<blockquote>tester (contrat de pentest, réseau d'entreprise mandaté…). Le flag</blockquote>
+<blockquote><code>--authorized</code> est obligatoire.</blockquote>
+<blockquote><strong>Cracker le WiFi d'un inconnu est illégal</strong> et n'est pas couvert par</blockquote>
+<blockquote>cet outil. Le test de déauthentification perturbe le réseau : faites-le</blockquote>
+<blockquote>uniquement sur votre matériel et prévenez les utilisateurs.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>Python 3.10+</strong> (le cœur est en stdlib, aucune dépendance).</li></ul>
+<ul><li><strong>Kali Linux</strong> avec une <strong>carte WiFi compatible mode monitor</strong>.</li></ul>
+<ul><li>Les outils <strong>aircrack-ng</strong> (airmon-ng, airodump-ng, aireplay-ng, aircrack-ng) : <code>sudo apt-get install -y aircrack-ng</code></li></ul>
+<ul><li>Optionnel : <code>reaver</code> / <code>bully</code> / <code>pixiewps</code> (audit WPS), <code>wash</code>, <code>hashcat</code> ou <code>john</code> (crack accéléré).</li></ul>
+
+<p>Vérifiez la présence des outils (aucune action sur le réseau) :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --wifi --check</code></pre>
+
+<hr>
+
+<h2>2. Première utilisation : scanner les réseaux à portée</h2>
+
+<pre><code># Lister les interfaces WiFi disponibles
+iw dev
+
+# Lancer le scan (30 s par défaut)
+sudo python mobile_scan.py --wifi --interface wlan0 --authorized</code></pre>
+
+<p>Le script active le <strong>mode monitor</strong> sur l'interface, scanne pendant la</p>
+<p>durée demandée puis affiche les réseaux détectés, triés par force de</p>
+<p>signal :</p>
+
+<pre><code>  1. MonReseau                  AA:BB:CC:DD:EE:FF  ch 6   -45 dBm  WPA2
+  2. Voisin_WPA                11:22:33:44:55:66  ch 11  -70 dBm  WPA</code></pre>
+
+<ul><li><code>--scan-time N</code> : durée du scan en secondes (30 par défaut).</li></ul>
+<ul><li>L'interface est <strong>automatiquement restaurée</strong> à la fin (mode managed, NetworkManager relancé).</li></ul>
+
+<blockquote>💡 <strong>Conseil d'utilisation efficace</strong> : lancez le scan en premier, puis</blockquote>
+<blockquote>relevez le <strong>BSSID</strong> et le <strong>canal</strong> du réseau que vous voulez tester</blockquote>
+<blockquote>(le vôtre). Ces deux valeurs servent aux étapes suivantes.</blockquote>
+
+<hr>
+
+<h2>3. Tester la robustesse du mot de passe : capture + crack WPA2</h2>
+
+<p>La méthode standard pour vérifier qu'un mot de passe WiFi n'est pas</p>
+<p>faible :</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --interface wlan0 \
+    --bssid AA:BB:CC:DD:EE:FF --ssid MonReseau --channel 6 \
+    --crack --authorized</code></pre>
+
+<p>Ce que fait la commande :</p>
+
+<ol><li><strong>Capture ciblée</strong> : airodump-ng écoute le canal du réseau cible.</li></ol>
+<ol><li><strong>Déauthentification</strong> : un client connecté est déconnecté (5 paquets deauth) pour forcer sa reconnexion — c'est pendant cette reconnexion que le handshake WPA2 est capturé.</li></ol>
+<ol><li><strong>Crack par dictionnaire</strong> : aircrack-ng essaie chaque mot de passe de la wordlist (rockyou par défaut si présente) contre le handshake.</li></ol>
+
+<p>Options utiles :</p>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--capture-time N</code></td>
+<td>Durée de capture (120 s par défaut)</td>
+</tr>
+<tr>
+<td><code>-w /chemin/wordlist.txt</code></td>
+<td>Dictionnaire à utiliser</td>
+</tr>
+<tr>
+<td><code>--method john</code> / <code>--method hashcat</code></td>
+<td>Autre outil de crack</td>
+</tr>
+<tr>
+<td><code>--wps</code></td>
+<td>Ajoute un test de vulnérabilité WPS (reaver)</td>
+</tr>
+</table>
+
+<p>Si le mot de passe est trouvé, il s'affiche :</p>
+
+<pre><code>[wifi] 🎉 MOT DE PASSE TROUVÉ : motdepassefaible123</code></pre>
+
+<blockquote>💡 <strong>Conseil d'utilisation efficace</strong> : si la capture échoue</blockquote>
+<blockquote>(« Aucun handshake »), c'est qu'aucun client ne s'est reconnecté.</blockquote>
+<blockquote>Relancez avec un client actif (téléphone en veille se reconnecte</blockquote>
+<blockquote>souvent tout seul) ou augmentez <code>--capture-time</code>. Pour vos tests,</blockquote>
+<blockquote>utilisez une wordlist adaptée (rockyou pour les mots de passe</blockquote>
+<blockquote>courants, ou une wordlist maison avec vos anciens mots de passe).</blockquote>
+
+<hr>
+
+<h2>4. Audit WPS</h2>
+
+<p>Le WPS (Wi-Fi Protected Setup) est une porte d'entrée connue : un PIN</p>
+<p>faible ou une implémentation buguée permet de retrouver la clé WPA2 sans</p>
+<p>dictionnaire.</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --interface wlan0 \
+    --bssid AA:BB:CC:DD:EE:FF --channel 6 --wps --authorized</code></pre>
+
+<ul><li><code>reaver</code> tente les PIN possibles (peut prendre du temps — borné à 30 min par tentative).</li></ul>
+<ul><li>Si le WPS est vulnérable, le PIN (et parfois le mot de passe) s'affiche.</li></ul>
+<ul><li>Si le routeur <strong>verrouille</strong> le WPS après plusieurs essais, l'outil le signale.</li></ul>
+
+<blockquote>💡 <strong>Conseil</strong> : l'audit WPS est bruyant (le routeur peut se verrouiller</blockquote>
+<blockquote>ou se redémarrer). À n'utiliser que sur votre propre équipement, en</blockquote>
+<blockquote>dehors des heures d'usage.</blockquote>
+
+<hr>
+
+<h2>5. Simuler sans rien casser : le mode dry-run</h2>
+
+<p>Avant chaque vraie campagne, visualisez <strong>exactement</strong> les commandes qui</p>
+<p>seraient exécutées :</p>
+
+<pre><code>python mobile_scan.py --wifi --bssid AA:BB:CC:DD:EE:FF --crack --wps \
+    --authorized --dry-run</code></pre>
+
+<p>Aucun paquet n'est émis : utile pour vérifier la ligne de commande et</p>
+<p>pour la documentation.</p>
+
+<hr>
+
+<h2>6. Rapport de l'audit</h2>
+
+<p>Ajoutez <code>-o rapport</code> pour produire un <strong>rapport JSON + HTML</strong> consolidé</p>
+<p>(réseaux, handshake, crack, WPS, recommandations) :</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --bssid AA:BB:CC:DD:EE:FF --crack \
+    --authorized -o /tmp/rapport_wifi
+# → /tmp/rapport_wifi.json + /tmp/rapport_wifi.html</code></pre>
+
+<p>Le rapport se termine par des <strong>recommandations de sécurité</strong> : mot de</p>
+<p>passe plus long, WPS désactivé, WPA3 si disponible, désactivation du</p>
+<p>SSID broadcast, etc.</p>
+
+<hr>
+
+<h2>7. Bonnes pratiques pour une utilisation efficace</h2>
+
+<ol><li><strong>Cadre légal d'abord</strong> : réseau possédé ou autorisation écrite. Documentez le périmètre avant de commencer.</li></ol>
+<ol><li><strong>Interface propre</strong> : utilisez une carte USB dédiée (Alfa AWUS036ACH ou similaire) — les cartes internes supportent mal le mode monitor.</li></ol>
+<ol><li><strong>Antenne et position</strong> : rapprochez-vous du routeur testé pour un signal stable (&gt; -70 dBm) : le handshake se capture beaucoup plus vite.</li></ol>
+<ol><li><strong>Wordlists adaptées</strong> : rockyou pour les mots de passe courants ; pour tester la politique d'un réseau, créez une wordlist dédiée (années, prénoms, marques…).</li></ol>
+<ol><li><strong>Minimisez l'impact</strong> : les deauth et reaver perturbent le réseau — testez en dehors des heures d'utilisation.</li></ol>
+<ol><li><strong>Vérifiez les recommandations</strong> : changez le mot de passe, désactivez WPS, passez en WPA3/WPA2-AES (jamais TKIP), activez le filtrage des invités.</li></ol>
+
+<hr>
+
+<h2>8. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>Interface monitor non active</code></td>
+<td>mode monitor non démarré</td>
+<td>Vérifiez que vous êtes root (<code>sudo</code>) et que la carte supporte le monitor (<code>iw list</code>)</td>
+</tr>
+<tr>
+<td>Aucun réseau détecté</td>
+<td>mauvaise interface ou canal</td>
+<td>Relancez avec <code>--interface</code> correct ; essayez <code>airodump-ng &lt;iface&gt;</code> à la main</td>
+</tr>
+<tr>
+<td>Aucun handshake</td>
+<td>aucun client actif</td>
+<td>Attendez une reconnexion, augmentez <code>--capture-time</code></td>
+</tr>
+<tr>
+<td><code>Aucune wordlist trouvée</code></td>
+<td>pas de wordlist Kali</td>
+<td>Installez rockyou : <code>sudo apt-get install -y wordlists</code> puis décompressez <code>/usr/share/wordlists/rockyou.txt.gz</code></td>
+</tr>
+<tr>
+<td>WPS verrouillé</td>
+<td>trop de tentatives</td>
+<td>Patientez (verrou temporaire) ; le test WPS est à faire une seule fois</td>
+</tr>
+</table>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div><div class="section">
+<h1>IRON MAN AI — Analyse Android (APK)</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Analyse Android</h1>
+
+<p>Le module <strong>Android</strong> de IRON MAN AI réalise une analyse statique de</p>
+<p>sécurité d'un fichier APK/AAB (application Android) : permissions,</p>
+<p>composants exportés, secrets codés en dur, code à risque (WebView, crypto</p>
+<p>faible, SQL, TLS…), URLs, le tout sans décompiler entièrement</p>
+<p>l'application.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> N'analysez que des applications que vous</blockquote>
+<blockquote>avez développées, que vous possédez, ou pour lesquelles vous avez</blockquote>
+<blockquote>une <strong>autorisation écrite</strong> (audit interne, test d'intrusion mandaté).</blockquote>
+<blockquote>Le flag <code>--authorized</code> est obligatoire. Analyser une application que</blockquote>
+<blockquote>vous ne possédez pas (pour voler des secrets ou contourner des</blockquote>
+<blockquote>protections) est illégal et n'est pas couvert par cet outil.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>Python 3.10+</strong> (le cœur est en stdlib, aucune dépendance).</li></ul>
+<ul><li>L'analyse de base (manifeste binaire, chaînes dex, secrets) fonctionne <strong>sans aucun outil externe</strong> : le manifeste Android est un format binaire (AXML) décodé nativement par le module.</li></ul>
+<ul><li><strong>Optionnel</strong> (analyse enrichie) : - <code>apktool</code> : décode le manifeste et les ressources (<code>sudo apt-get install -y apktool</code>) - <code>jadx</code> : décompilation complète du code Java (<code>sudo apt-get install -y jadx</code>)</li></ul>
+
+<p>Vérifiez les outils disponibles :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --android --check</code></pre>
+
+<hr>
+
+<h2>2. Première analyse : un APK en une commande</h2>
+
+<pre><code>python mobile_scan.py --android --apk /chemin/app.apk --authorized</code></pre>
+
+<p>Le module affiche d'abord les outils disponibles, puis le <strong>résumé</strong> de</p>
+<p>l'analyse :</p>
+
+<pre><code>  Package           : com.example.app
+  Version           : 2.4.1 (code 241)
+  minSdk/targetSdk  : 23 / 34
+  SHA-256           : 3f2a9c1d…
+
+  Total findings    : 12
+    high     4    ████
+    medium   6    ██████
+    low      2    ██
+  Permissions dangereuses : 3
+  Composants exportés     : 2
+  Secrets détectés        : 1</code></pre>
+
+<p>Puis le détail des findings, classés par sévérité.</p>
+
+<hr>
+
+<h2>3. Ce que l'outil détecte</h2>
+
+<h3>Manifeste (AndroidManifest.xml)</h3>
+<ul><li><strong>Permissions dangereuses</strong> : CAMERA, RECORD_AUDIO, LOCALISATION, SMS, contacts… (protection level *dangerous*).</li></ul>
+<ul><li><strong>Permissions à haut risque</strong> : QUERY_ALL_PACKAGES, MANAGE_EXTERNAL_STORAGE, SYSTEM_ALERT_WINDOW, REQUEST_INSTALL_PACKAGES…</li></ul>
+<ul><li><strong>Composants exportés</strong> : activity/service/receiver/provider invocables par d'autres applications.</li></ul>
+<ul><li><strong>Debuggable</strong> (<code>android:debuggable="true"</code>), <strong>backup autorisé</strong> (<code>android:allowBackup="true"</code>), <strong>trafic en clair</strong> (<code>android:usesCleartextTraffic="true"</code>).</li></ul>
+<ul><li><strong>minSdkVersion obsolète</strong> (&lt; 21, Android 5.0).</li></ul>
+
+<h3>Bytecode (classes*.dex)</h3>
+<ul><li><strong>Secrets codés en dur</strong> : clés AWS (AKIA…), clés API Google (AIza…), Stripe, tokens GitHub/Slack/Firebase, clés privées PEM, <code>password=...</code> / <code>api_key=...</code> dans le code.</li></ul>
+<ul><li><strong>Code à risque</strong> : WebView avec JavaScript, <code>addJavascriptInterface</code>, hachage MD5/SHA-1, chiffrement faible (DES/RC4/AES-ECB), requêtes SQL concaténées, validation TLS désactivée, accès aux identifiants de l'appareil (IMEI…), chargement dynamique de code.</li></ul>
+<ul><li><strong>URLs</strong> : endpoints HTTP(S) embarqués, signalés s'ils utilisent HTTP en clair.</li></ul>
+
+<hr>
+
+<h2>4. Produire un rapport HTML/JSON</h2>
+
+<pre><code>python mobile_scan.py --android --apk app.apk --authorized -o /tmp/rapport_app
+# → /tmp/rapport_app.json + /tmp/rapport_app.html</code></pre>
+
+<ul><li><code>-o rapport.html</code> : HTML seul ; <code>-o rapport.json</code> : JSON seul.</li></ul>
+<ul><li>Le rapport HTML est un document autonome et lisible dans un navigateur (findings triés par sévérité, permissions, composants, secrets, URLs).</li></ul>
+
+<hr>
+
+<h2>5. Options utiles</h2>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--no-secrets</code></td>
+<td>Désactive la détection de secrets</td>
+</tr>
+<tr>
+<td><code>--no-code</code></td>
+<td>Désactive l'analyse du bytecode (dex)</td>
+</tr>
+<tr>
+<td><code>--jadx</code></td>
+<td><strong>Enrichit l'analyse par décompilation jadx</strong> (lent : ~10 min sur une grosse app)</td>
+</tr>
+<tr>
+<td><code>-v</code> / <code>--verbose</code></td>
+<td>Affiche le détail complet des findings</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Affiche les étapes sans rien analyser</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>6. Aller plus loin avec apktool / jadx</h2>
+
+<p>Si <code>apktool</code> est installé, le manifeste binaire est décodé par apktool</p>
+<p>(analyse plus fidèle des ressources). Si <code>jadx</code> est installé, ajoutez</p>
+<p><strong><code>--jadx</code></strong> pour lancer une <strong>décompilation complète</strong> en complément :</p>
+<p>les mêmes patterns de code à risque sont recherchés dans le code Java</p>
+<p>décompilé, avec le fichier et la ligne exacts.</p>
+
+<blockquote>⚠️ La décompilation jadx d'une application réelle (milliers de classes)</blockquote>
+<blockquote>prend <strong>~10 minutes</strong> et consomme beaucoup de RAM. Elle est <strong>opt-in</strong> :</blockquote>
+<blockquote>sans <code>--jadx</code>, l'analyse (manifeste + dex + secrets) prend quelques</blockquote>
+<blockquote>secondes.</blockquote>
+
+<p>Installation :</p>
+
+<pre><code>sudo apt-get update
+sudo apt-get install -y apktool jadx</code></pre>
+
+<hr>
+
+<h2>7. Interpréter les résultats</h2>
+
+<ul><li><strong>high / critical</strong> : à corriger en priorité — secret exposé, trafic en clair, composant exporté sensible, TLS désactivé.</li></ul>
+<ul><li><strong>medium</strong> : à corriger selon le contexte — hachage faible, backup autorisé, minSdk obsolète.</li></ul>
+<ul><li><strong>low</strong> : bonnes pratiques — permissions dangereuses justifiées, composants exportés intentionnels.</li></ul>
+
+<p>Chaque finding contient une <strong>recommandation</strong> précise (utiliser le</p>
+<p>Android Keystore, passer en AES-GCM, épingler les certificats,</p>
+<p>paramétrer les requêtes SQL…).</p>
+
+<hr>
+
+<h2>8. Bonnes pratiques pour une utilisation efficace</h2>
+
+<ol><li><strong>Cadre légal d'abord</strong> : app possédée ou autorisation écrite.</li></ol>
+<ol><li><strong>Comparez les versions</strong> : analysez l'APK de production ET un build de dev — les secrets et le flag debuggable s'y glissent souvent.</li></ol>
+<ol><li><strong>Vérifiez les faux positifs</strong> : un mot de passe dans un exemple de documentation embarqué n'est pas forcément un secret réel — confirmez dans le code décompilé.</li></ol>
+<ol><li><strong>Intégrez à la CI</strong> : lancez l'analyse à chaque build pour détecter les secrets avant la mise en production.</li></ol>
+<ol><li><strong>Ne stockez jamais de secrets</strong> : API keys dans le code = exposées (l'APK est téléchargeable par n'importe qui). Utilisez le backend et le Android Keystore.</li></ol>
+
+<hr>
+
+<h2>9. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>Fichier introuvable</code></td>
+<td>mauvais chemin</td>
+<td>Vérifiez le chemin de l'APK (<code>ls -la</code>)</td>
+</tr>
+<tr>
+<td><code>AndroidManifest.xml non lisible</code></td>
+<td>APK corrompu ou non-Android</td>
+<td>Vérifiez avec <code>file app.apk</code> (doit être un zip)</td>
+</tr>
+<tr>
+<td>Aucun finding</td>
+<td>app bien sécurisée… ou analyse incomplète</td>
+<td>Installez apktool/jadx pour l'analyse approfondie</td>
+</tr>
+<tr>
+<td><code>--apk</code> requis</td>
+<td>mode Android sans fichier</td>
+<td>Ajoutez <code>--apk &lt;fichier.apk&gt;</code></td>
+</tr>
+</table>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div><div class="section">
+<h1>IRON MAN AI — Audit de périphérique</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Audit de périphérique Android</h1>
+
+<p>Le module <strong>Périphérique</strong> de IRON MAN AI audite la <strong>posture de sécurité</strong></p>
+<p>d'un appareil Android (téléphone, tablette) que vous possédez : type de</p>
+<p>verrou d'écran, chiffrement du stockage, débogage USB, adb réseau,</p>
+<p>bootloader/OEM unlock, SELinux, fausses positions, services</p>
+<p>d'accessibilité, sources inconnues. Il produit une <strong>note de posture /100</strong></p>
+<p>et des recommandations de durcissement.</p>
+
+<p>Toutes les commandes sont <strong>en lecture seule</strong> (getprop, settings get,</p>
+<p>dumpsys, getenforce) : <strong>aucune modification de l'appareil</strong>.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> Cet audit teste la *résistance* de votre</blockquote>
+<blockquote>appareil aux techniques de déverrouillage et de compromission. Il ne</blockquote>
+<blockquote>permet <strong>pas</strong> de déverrouiller un appareil que vous ne possédez pas.</blockquote>
+<blockquote>Le flag <code>--authorized</code> est obligatoire : votre matériel ou un appareil</blockquote>
+<blockquote>pour lequel vous avez une autorisation écrite (audit interne, test</blockquote>
+<blockquote>mandaté). Tenter de contourner le verrou d'un appareil sans</blockquote>
+<blockquote>autorisation est illégal.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>adb</strong> : <code>sudo apt-get install -y adb</code> (ou <code>android-tools-adb</code>).</li></ul>
+<ul><li>Un appareil Android <strong>branché en USB</strong> avec <strong>débogage USB activé</strong> : 1. Paramètres → À propos → tapez 7 fois sur « Numéro de build » (active les options développeur) ; 2. Paramètres → Options développeur → activez <strong>Débogage USB</strong> ; 3. À la première connexion, acceptez l'invite « Autoriser le débogage USB ? » sur l'écran de l'appareil (cochez « Toujours autoriser »).</li></ul>
+<ul><li><strong>Important</strong> : activer le débogage USB nécessite l'accès à l'écran de l'appareil — c'est la garantie que c'est le vôtre.</li></ul>
+
+<p>Vérifiez les outils :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --check          # vérifie les 3 modules (WiFi, Android, adb)
+python mobile_scan.py --device --check # vérifie uniquement adb</code></pre>
+
+<hr>
+
+<h2>2. Première analyse : un appareil en une commande</h2>
+
+<pre><code>python mobile_scan.py --device --authorized</code></pre>
+
+<ul><li>Si un <strong>seul</strong> appareil est connecté, il est détecté automatiquement.</li></ul>
+<ul><li>Si <strong>plusieurs</strong> sont branchés, précisez le serial (<code>adb devices</code> pour le lister) :</li></ul>
+
+<pre><code>python mobile_scan.py --device --serial ZY12345678 --authorized</code></pre>
+
+<p>Sortie console : modèle, version Android, correctif de sécurité, verrou,</p>
+<p>chiffrement, SELinux, puis la liste des contrôles avec leur verdict</p>
+<p>(🔴 critique, 🟠 avertissement, 🟢 ok) et la <strong>note de posture /100</strong>.</p>
+
+<hr>
+
+<h2>3. Rapport complet (JSON + HTML)</h2>
+
+<pre><code>python mobile_scan.py --device --authorized -o /tmp/rapport_appareil</code></pre>
+
+<p>Produit <code>rapport_appareil.json</code> et <code>rapport_appareil.html</code> (autonome,</p>
+<p>lisible dans un navigateur) : informations de l'appareil, note de posture,</p>
+<p>chaque contrôle avec sa recommandation.</p>
+
+<hr>
+
+<h2>4. Les contrôles réalisés</h2>
+
+<table>
+<tr>
+<th>Contrôle</th>
+<th>Risque si mauvais</th>
+<th>Sévérité</th>
+</tr>
+<tr>
+<td>Verrou d'écran (aucun)</td>
+<td>accès physique = accès aux données</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Chiffrement du stockage (non chiffré)</td>
+<td>données lisibles sans clé</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td><strong>adb réseau</strong> (<code>adb tcpip</code>)</td>
+<td>écoute réseau sans câble</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>SELinux (Permissive)</td>
+<td>isolation affaiblie</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Fausses positions (mock location)</td>
+<td>GPS falsifiable</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Débogage USB activé</td>
+<td>commandes depuis un PC (nécessaire pour l'audit)</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Bootloader déverrouillé / OEM unlock</td>
+<td>firmware modifié possible</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Build userdebug/eng</td>
+<td>accès root possible</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Services d'accessibilité actifs</td>
+<td>lecture écran/frappes</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Sources inconnues / vérification off</td>
+<td>sideload malveillant</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Vérification des applications (Play Protect) off</td>
+<td>apps malveillantes</td>
+<td>🟠</td>
+</tr>
+</table>
+
+<p>La note part de 100 : <strong>-25 par contrôle critique, -10 par avertissement</strong></p>
+<p>(bornée à 0).</p>
+
+<hr>
+
+<h2>5. Interpréter le résultat et durcir l'appareil</h2>
+
+<ul><li><strong>Score ≥ 80</strong> : bonne posture. Pensez à <strong>désactiver le débogage USB</strong> après l'audit (c'est le seul avertissement habituel).</li></ul>
+<ul><li><strong>Score 40–79</strong> : des points faibles réels (ex. pas de verrou, sources inconnues) — appliquez les recommandations de chaque contrôle.</li></ul>
+<ul><li><strong>Score &lt; 40</strong> : appareil très exposé (adb réseau, SELinux permissif, stockage non chiffré…) — durcissez avant usage quotidien.</li></ul>
+
+<p>Le rapport HTML détaille pour chaque contrôle la <strong>recommandation</strong></p>
+<p>exacte (paramètres à modifier, commandes fastboot, etc.).</p>
+
+<hr>
+
+<h2>6. Cas d'usage efficaces</h2>
+
+<ol><li><strong>Avant de vendre / donner un appareil</strong> : vérifiez qu'il n'y a pas d'accès résiduel (verrou, FRP, adb réseau) et faites une réinitialisation propre.</li></ol>
+<ol><li><strong>Parc d'entreprise</strong> : auditez chaque appareil fourni aux employés et imposez un score minimum (ex. ≥ 80) avant déploiement.</li></ol>
+<ol><li><strong>Après une réparation</strong> (écran changé, ROM réinstallée) : confirmez que le bootloader est re-verrouillé (état green) et SELinux Enforcing.</li></ol>
+<ol><li><strong>Appareil d'occasion acheté</strong> : auditez-le avant d'y mettre vos données — un bootloader déverrouillé ou un adb réseau actif est un signal d'alerte.</li></ol>
+
+<hr>
+
+<h2>7. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td>« Aucun appareil connecté »</td>
+<td>débogage USB désactivé ou invite non acceptée</td>
+<td>Activez le débogage USB et acceptez l'invite sur l'appareil</td>
+</tr>
+<tr>
+<td>« Plusieurs appareils connectés »</td>
+<td>2+ appareils branchés</td>
+<td><code>adb devices</code>, puis <code>--serial &lt;serial&gt;</code></td>
+</tr>
+<tr>
+<td>« adb introuvable »</td>
+<td>outil absent</td>
+<td><code>sudo apt-get install -y adb</code></td>
+</tr>
+<tr>
+<td>Verrou « inconnu »</td>
+<td>build exotique / ROM modifiée</td>
+<td>Vérifiez manuellement : <code>adb shell dumpsys lock_settings</code></td>
+</tr>
+<tr>
+<td>Résultats identiques à chaque fois</td>
+<td>cache adb</td>
+<td><code>adb kill-server &amp;&amp; adb start-server</code></td>
+</tr>
+</table>
+
+<hr>
+
+<h2>8. Limites (honnêteté technique)</h2>
+
+<ul><li>L'audit lit l'état <strong>actuel</strong> de l'appareil : il ne détecte pas les malwares déjà installés, ni ne « déverrouille » quoi que ce soit.</li></ul>
+<ul><li>Le type de verrou est lu via <code>dumpsys</code> : sur certaines ROM (MIUI, OneUI…), la valeur peut être « inconnu » — le contrôle reste utile via les autres indicateurs.</li></ul>
+<ul><li>Il ne remplace pas une analyse de sécurité approfondie (le module <code>--android</code> complète pour les applications, le module <code>--wifi</code> pour le réseau).</li></ul>
+
+<hr>
+
+<p>*Cadre d'utilisation : appareils que vous possédez ou êtes autorisé à</p>
+<p>tester. <code>--authorized</code> est obligatoire.*</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div><div class="section">
+<h1>IRON MAN AI — Contrôler votre téléphone</h1>
+<h1>Manuel — Contrôler votre téléphone Android depuis votre PC</h1>
+
+<p>Voir l'écran de <strong>votre</strong> téléphone en temps réel et le piloter depuis</p>
+<p>votre ordinateur : à la maison (USB ou WiFi) ou <strong>à distance</strong> (depuis</p>
+<p>n'importe où dans le monde, via un tunnel sécurisé). La solution</p>
+<p>principale est <strong>scrcpy</strong> (open-source, gratuit) + <strong>adb</strong>.</p>
+
+<blockquote>⚠️ <strong>Cadre strict.</strong> Ce manuel ne s'applique qu'à <strong>votre propre téléphone</strong></blockquote>
+<blockquote>(ou un appareil dont vous avez la garde avec accord).</blockquote>
+<blockquote>Le débogage USB exige l'accès à l'écran de l'appareil : c'est la</blockquote>
+<blockquote>garantie que c'est le vôtre. Installer un accès distant sur le</blockquote>
+<blockquote>téléphone de quelqu'un d'autre sans son consentement est un délit</blockquote>
+<blockquote>(espionnage, accès non autorisé) — hors de propos ici.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>adb</strong> : <code>sudo apt-get install -y adb</code> (Linux) · <code>brew install android-platform-tools</code> (macOS) · [outils plateforme Google](https://developer.android.com/studio#command-line-tools) (Windows).</li></ul>
+<ul><li><strong>scrcpy</strong> : voir [§ 2 Installation](#2-installation).</li></ul>
+<ul><li>Votre téléphone en <strong>débogage USB</strong> : 1. Paramètres → À propos → tapez 7 fois sur « Numéro de build » ; 2. Paramètres → Options développeur → activez <strong>Débogage USB</strong> ; 3. Acceptez l'invite « Autoriser le débogage USB ? » sur l'écran (cochez « Toujours autoriser »).</li></ul>
+
+<hr>
+
+<h2>2. Installation</h2>
+
+<h3>Linux (Debian/Ubuntu)</h3>
+
+<pre><code>bash scripts/install_scrcpy.sh        # installe scrcpy + adb + ffmpeg (sudo)</code></pre>
+
+<h3>macOS</h3>
+
+<pre><code>brew install scrcpy
+brew install --cask android-platform-tools</code></pre>
+
+<h3>Windows</h3>
+
+<p>Téléchargez le binaire sur</p>
+<p>&lt;https://github.com/Genymobile/scrcpy/releases&gt; (fichier</p>
+<p><code>scrcpy-win64-vX.Y.zip</code>), décompressez-le, puis lancez <code>scrcpy.exe</code>.</p>
+
+<p>Vérifiez :</p>
+
+<pre><code>adb devices        # votre téléphone doit apparaître comme « device »
+scrcpy --version</code></pre>
+
+<hr>
+
+<h2>3. Mode local — USB (le plus simple)</h2>
+
+<ol><li>Branchez le téléphone en USB (débogage USB activé).</li></ol>
+<ol><li><code>adb devices</code> → votre téléphone apparaît en « device ».</li></ol>
+<ol><li>Lancez :</li></ol>
+
+<pre><code>scrcpy</code></pre>
+
+<p>L'écran du téléphone s'affiche dans une fenêtre. <strong>Souris = toucher</strong>,</p>
+<p><strong>clavier = saisie</strong>, glisser-déposer = transfert de fichiers, <code>Ctrl+C</code></p>
+<p>= copier, <code>Ctrl+V</code> = coller, <code>Ctrl+S</code> = capture d'écran, <code>Ctrl+O</code> =</p>
+<p>écran éteint (mode économie), <code>Ctrl+X</code> = verrouiller l'écran.</p>
+
+<hr>
+
+<h2>4. Mode local — WiFi (même réseau)</h2>
+
+<h3>Android 11 et plus (appairage sans fil)</h3>
+
+<ol><li>Téléphone : Paramètres → Options développeur → <strong>Appairage sans fil</strong> (dans « Débogage sans fil »). Notez l'<strong>adresse IP:port</strong> et le <strong>code d'appairage</strong> affichés.</li></ol>
+<ol><li>Sur le PC :</li></ol>
+
+<pre><code>adb pair IP:PORT          # puis saisissez le code d'appairage
+adb connect IP:PORT
+scrcpy --tcpip</code></pre>
+
+<h3>Android 10 et moins (adb tcpip)</h3>
+
+<pre><code>adb devices                        # téléphone en USB
+adb tcpip 5555                     # active adb réseau (1 fois)
+# débranchez le câble, puis :
+adb connect IP_DU_TELEPHONE:5555
+scrcpy --tcpip</code></pre>
+
+<blockquote>🔒 Après usage : <code>adb disconnect</code> et réactivez le débogage USB filaire</blockquote>
+<blockquote>uniquement si nécessaire. Ne laissez <strong>jamais</strong> adb réseau actif sur un</blockquote>
+<blockquote>réseau public (café, hôtel) : n'importe qui sur ce réseau pourrait</blockquote>
+<blockquote>tenter de s'y connecter.</blockquote>
+
+<hr>
+
+<h2>5. Mode distant — depuis n'importe où dans le monde</h2>
+
+<p>Principe : le téléphone reste <strong>chez vous</strong>, relié en USB (ou WiFi) à une</p>
+<p>machine allumée en permanence (PC ou mini-PC). Cette machine ouvre un</p>
+<p><strong>tunnel SSH sortant</strong> vers un petit serveur que vous possédez (VPS à</p>
+<p>~3 €/mois, ou un Raspberry Pi chez vous si vous avez une IP fixe/DNS</p>
+<p>dynamique). De n'importe où, vous vous connectez à votre serveur et</p>
+<p>pilotez le téléphone.</p>
+
+<pre><code>Votre PC (où que vous soyez)
+   │  ssh user@monserveur
+   ▼
+Serveur (VPS) ◄────── tunnel SSH sortant (reverse) ────── machine à la maison
+   ▲                                                        │ USB/WiFi
+   └──────────────────────────────────────────────────────► téléphone (adb :5555)</code></pre>
+
+<h3>Étape 1 — machine à la maison (une seule fois)</h3>
+
+<pre><code># 1. Téléphone branché en USB, débogage USB activé
+adb tcpip 5555
+adb connect 127.0.0.1:5555        # adb local (sans le câble, en WiFi maison)
+
+# 2. Clé SSH (une seule fois)
+ssh-keygen -t ed25519
+ssh-copy-id user@monserveur
+
+# 3. Tunnel permanent (reverse) : expose le port adb local sur le serveur
+ssh -N -R 5555:127.0.0.1:5555 user@monserveur
+# → lancez-le via systemd/tmux pour qu'il survive aux déconnexions.</code></pre>
+
+<h3>Étape 2 — depuis n'importe où</h3>
+
+<pre><code># Sur VOTRE PC portable, en voyage :
+ssh user@monserveur -L 5555:127.0.0.1:5555   # terminal 1 (gardez ouvert)
+scrcpy --tcpip=127.0.0.1:5555               # terminal 2 : pilotez le téléphone</code></pre>
+
+<h3>Alternative : WireGuard (VPN privé)</h3>
+
+<p>Si vous avez un VPS, installez <strong>WireGuard</strong> (serveur sur le VPS, client</p>
+<p>sur votre PC) : le téléphone (via la machine à la maison) devient</p>
+<p>accessible comme un appareil du VPN, sans exposer de port. Plus simple à</p>
+<p>maintenir, chiffré de bout en bout.</p>
+
+<h3>Sécurité (non négociable)</h3>
+
+<ul><li><strong>Jamais</strong> d'exposition directe d'adb sur Internet (pas de port 5555 ouvert publiquement) — toujours derrière un tunnel SSH ou un VPN.</li></ul>
+<ul><li><strong>Clés SSH uniquement</strong> (<code>PasswordAuthentication no</code> sur le serveur), pas de mot de passe.</li></ul>
+<ul><li>Activez le <strong>verrou d'écran</strong> du téléphone et le chiffrement : le tunnel ne sert à rien si l'appareil est lui-même vulnérable.</li></ul>
+<ul><li>Désactivez le débogage USB / adb réseau quand vous n'en avez pas besoin.</li></ul>
+
+<hr>
+
+<h2>6. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>adb devices</code> vide</td>
+<td>débogage USB off ou invite refusée</td>
+<td>Activez le débogage USB, acceptez l'invite, <code>adb kill-server</code></td>
+</tr>
+<tr>
+<td>« device unauthorized »</td>
+<td>clé de confiance non acceptée</td>
+<td>Décochez « Toujours autoriser » et re-acceptez</td>
+</tr>
+<tr>
+<td><code>adb connect</code> échoue</td>
+<td>IP erronée ou téléphone non appairable</td>
+<td>Vérifiez l'IP dans les options développeur ; Android 11+ : appairage</td>
+</tr>
+<tr>
+<td>scrcpy lent en WiFi</td>
+<td>réseau saturé</td>
+<td>Privilégiez le USB ; <code>scrcpy --max-size 1024 --max-fps 30</code></td>
+</tr>
+<tr>
+<td>écran noir</td>
+<td>écran verrouillé ou vidéo non décodée</td>
+<td>Déverrouillez le téléphone ; installez ffmpeg</td>
+</tr>
+<tr>
+<td>tunnel distant coupé</td>
+<td>déconnexion SSH</td>
+<td>Utilisez <code>autossh</code> ou un service systemd avec redémarrage</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>7. Limites (honnêteté technique)</h2>
+
+<ul><li>scrcpy ne fonctionne que sur des appareils <strong>avec débogage USB actif</strong> (donc les vôtres). Il ne contourne aucun verrou.</li></ul>
+<ul><li>En mode distant, le téléphone doit rester allumé, chargé et relié à la machine à la maison (ou rester connecté en WiFi).</li></ul>
+<ul><li>La latence distante dépend de votre connexion ; le USB reste le plus fluide.</li></ul>
+<ul><li>Pour localiser ou verrouiller un téléphone <strong>perdu</strong>, utilisez <strong>Google Find My Device</strong> (officiel) — scrcpy ne s'y substitue pas.</li></ul>
+
+<hr>
+
+<p>*Cadre : votre propre matériel. <code>adb</code> + <code>scrcpy</code> en local, tunnel SSH ou</p>
+<p>WireGuard pour le distant.*</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</div>
+</body>
+</html>

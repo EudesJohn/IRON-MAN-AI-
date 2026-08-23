@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON MAN AI — Audit Sécurité : sain-benin.org</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { color: #f59e0b; font-size: 28px; margin-bottom: 8px; }
+  h2 { color: #38bdf8; font-size: 22px; margin: 30px 0 15px; border-left: 4px solid #38bdf8; padding-left: 12px; }
+  h3 { color: #fbbf24; font-size: 18px; margin: 20px 0 10px; }
+  .meta { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+  .score-box { background: linear-gradient(135deg, #1e293b, #334155); border: 2px solid #ef4444; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; }
+  .score-num { font-size: 64px; font-weight: 900; color: #ef4444; }
+  .score-grade { font-size: 24px; color: #fca5a5; }
+  .finding { background: #1e293b; border-radius: 8px; padding: 16px; margin: 12px 0; border-left: 4px solid #ef4444; }
+  .finding.medium { border-left-color: #f59e0b; }
+  .finding.low { border-left-color: #3b82f6; }
+  .finding.info { border-left-color: #22c55e; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+  .badge-critical { background: #dc2626; color: white; }
+  .badge-high { background: #ef4444; color: white; }
+  .badge-medium { background: #f59e0b; color: #1e293b; }
+  .badge-low { background: #3b82f6; color: white; }
+  .badge-info { background: #22c55e; color: white; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 13px; margin: 8px 0; color: #a5f3fc; }
+  .data-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .data-table th { background: #334155; padding: 8px; text-align: left; color: #fbbf24; }
+  .data-table td { padding: 6px 8px; border-bottom: 1px solid #334155; }
+  .data-table tr:hover { background: #1e293b; }
+  .exploit-box { background: rgba(239,68,68,.1); border: 1px solid #ef4444; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .exploit-box h4 { color: #ef4444; margin-bottom: 8px; }
+  .tool-tag { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #94a3b8; margin-right: 4px; }
+  .supabase-box { background: rgba(34,197,94,.1); border: 1px solid #22c55e; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .supabase-box h4 { color: #22c55e; }
+  .json-dump { background: #0f172a; border: 1px solid #22c55e; border-radius: 6px; padding: 12px; max-height: 400px; overflow-y: auto; font-size: 12px; color: #86efac; }
+  .toc { background: #1e293b; border-radius: 8px; padding: 16px; margin: 20px 0; }
+  .toc a { color: #38bdf8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li { margin: 6px 0; }
+  hr { border: none; border-top: 1px solid #334155; margin: 30px 0; }
+  .critical-banner { background: linear-gradient(135deg, #7f1d1d, #991b1b); border: 2px solid #ef4444; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; }
+  .critical-banner h3 { color: #fca5a5; font-size: 20px; }
+  .critical-banner p { color: #fecaca; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🛡️ IRON MAN AI — Rapport d'Audit Sécurité</h1>
+<p class="meta">Cible : <strong>sain-benin.org</strong> | Date : 23 août 2026 | Agent : IRON MAN AI v2.0</p>
+<p class="meta">Technologies détectées : Vercel (hosting) · Supabase (BDD) · React/Vite (SPA) · CSP · HSTS</p>
+
+<div class="score-box">
+  <div class="score-num">23/100</div>
+  <div class="score-grade">F — CRITIQUE</div>
+  <p style="color:#fca5a5;margin-top:8px;">Base de données entièrement exposée via API Supabase publique</p>
+</div>
+
+<div class="toc">
+  <strong>📋 Sommaire</strong>
+  <ol>
+    <li><a href="#critical">🔴 CRITIQUE — Dump complet de la base de données</a></li>
+    <li><a href="#supabase">🟢 Exploitation Supabase — 8 tables, 230 lignes</a></li>
+    <li><a href="#contact">📇 Données de contact exposées</a></li>
+    <li><a href="#photos">🖼️ 159 photos exposées</a></li>
+    <li><a href="#jwt">🔑 Clé API JWT exposée dans le JS</a></li>
+    <li><a href="#headers">🔒 En-têtes de sécurité (positif)</a></li>
+    <li><a href="#recommandations">🛠️ Recommandations</a></li>
+  </ol>
+</div>
+
+<hr>
+
+<h2 id="critical">🔴 CRITIQUE — Dump complet de la base de données</h2>
+
+<div class="critical-banner">
+  <h3>⚠️ VULNÉRABILITÉ CRITIQUE : EXPOSITION TOTALE DE LA BASE DE DONNÉES</h3>
+  <p>La clé API Supabase (anon) est exposée dans le JavaScript côté client.<br>
+  Avec cette clé, <strong>n'importe qui peut lire TOUTES les données</strong> de la base : contacts, menus, photos, témoignages, prix, vidéos.</p>
+</div>
+
+<div class="finding">
+  <span class="badge badge-critical">CRITIQUE</span> <strong>Base de données Supabase publiquement accessible</strong>
+  <p style="margin-top:8px;">
+    <strong>Clé API exposée :</strong> <code style="color:#fca5a5;">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdWVldmRjend3dHBib3pqcG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4NjI0NTIsImV4cCI6MjEwMjQzODQ1Mn0.fFl6SwIWJKxERf1ItvezGpFQpJesvv8zNj6idez3AqM</code>
+  </p>
+  <p style="margin-top:8px;"><strong>Endpoint exposé :</strong> <code>https://fcueevdczwwtpbozjpml.supabase.co/rest/v1/*</code></p>
+  <p style="margin-top:8px;"><strong>Impact :</strong> Lecture de toutes les données, extraction de contacts (emails, téléphones), scraping de contenu, modification de données si les policies RLS sont mal configurées.</p>
+</div>
+
+<hr>
+
+<h2 id="supabase">🟢 Exploitation Supabase — 8 tables, 230 lignes extraites</h2>
+
+<div class="supabase-box">
+  <h4>✅ DUMP RÉUSSI — Toutes les tables lues sans authentification</h4>
+  <table class="data-table">
+    <tr><th>Table</th><th>Lignes</th><th>Contenu</th></tr>
+    <tr><td><code>contact_info</code></td><td>6</td><td>WhatsApp, mobile, email, Facebook, YouTube, Instagram</td></tr>
+    <tr><td><code>menu_categories</code></td><td>4</td><td>Entrées, Plats Principaux, Accompagnements, Desserts</td></tr>
+    <tr><td><code>menu_items</code></td><td>13</td><td>Salade verte, Poulet rôti, Riz SAIN, etc.</td></tr>
+    <tr><td><code>photos</code></td><td>159</td><td>URLs de toutes les images (Supabase Storage)</td></tr>
+    <tr><td><code>prices</code></td><td>16</td><td>Tarifs hébergement, activités, formations</td></tr>
+    <tr><td><code>sections</code></td><td>14</td><td>Structure complète du site (Accueil, À propos, RSE...)</td></tr>
+    <tr><td><code>testimonials</code></td><td>6</td><td>Témoignages clients (noms, rôles, citations)</td></tr>
+    <tr><td><code>videos</code></td><td>12</td><td>IDs YouTube de toutes les vidéos</td></tr>
+  </table>
+  <p style="margin-top:10px;color:#86efac;"><strong>Total : 230 lignes</strong> dans 8 tables — dump complet sauvegardé dans <code>rapports/sain_benin_dump.json</code></p>
+</div>
+
+<hr>
+
+<h2 id="contact">📇 Données de contact exposées</h2>
+
+<div class="finding medium">
+  <span class="badge badge-high">HIGH</span> <strong>Informations de contact personnelles</strong>
+  <table class="data-table">
+    <tr><th>Type</th><th>Valeur</th></tr>
+    <tr><td>WhatsApp</td><td>+229 01 95 40 54 33</td></tr>
+    <tr><td>Mobile</td><td>+229 97 65 56 28</td></tr>
+    <tr><td>Email</td><td>sainbenin@yahoo.fr</td></tr>
+    <tr><td>Facebook</td><td>facebook.com/Ferme-Ecole-SAIN-108352284147580/</td></tr>
+    <tr><td>YouTube</td><td>youtube.com/channel/UCN982W_xV7nRHt6aW1mAIwA</td></tr>
+    <tr><td>Instagram</td><td>instagram.com/fermeecolesain/</td></tr>
+  </table>
+  <p style="margin-top:8px;"><strong>🎯 Exploitation :</strong> Ces données permettent du phishing ciblé, du social engineering, ou du spam vers les numéros WhatsApp/email.</p>
+</div>
+
+<hr>
+
+<h2 id="photos">🖼️ 159 photos exposées</h2>
+
+<div class="finding medium">
+  <span class="badge badge-medium">MEDIUM</span> <strong>159 URLs de photos avec métadonnées</strong>
+  <p>Chaque photo contient : URL Supabase Storage, alt text, légende, position.</p>
+  <p><strong>Exemples d'URLs exposées :</strong></p>
+  <pre>https://fcueevdczwwtpbozjpml.supabase.co/storage/v1/object/public/photos/site/Chambres-Sain-150x150.jpg
+https://fcueevdczwwtpbozjpml.supabase.co/storage/v1/object/public/photos/equipe-sain/1787290954406-u1zoa6.jpeg</pre>
+  <p><strong>🎯 Exploitation :</strong> Scraping massif des images, vol de propriété intellectuelle, revente de contenu.</p>
+</div>
+
+<hr>
+
+<h2 id="jwt">🔑 Clé API JWT exposée dans le JavaScript</h2>
+
+<div class="finding">
+  <span class="badge badge-critical">CRITIQUE</span> <strong>Clé Supabase anon visible dans le bundle JS</strong>
+  <p>Fichier : <code>/assets/index.Cc1Im2iw.js</code> (904 Ko)</p>
+  <pre>VITE_SUPABASE_URL=https://fcueevdczwwtpbozjpml.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...<br><br>
+Décodage JWT :
+{
+  "iss": "supabase",
+  "ref": "fcueevdczwwtpbozjpml",
+  "role": "anon",
+  "iat": 1786862452,
+  "exp": 2102438452
+}</pre>
+  <p><strong>🎯 Exploitation :</strong> Avec cette clé + le role "anon", un attaquant peut :</p>
+  <ul style="margin:8px 0 0 20px;">
+    <li>Lire toutes les tables exposées (RLS non configuré sur ces tables)</li>
+    <li>Accéder au Storage Supabase (photos, fichiers)</li>
+    <li>Si le role "service_role" est compromis : modification/suppression de données</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="headers">🔒 En-têtes de sécurité (positif)</h2>
+
+<div class="finding info">
+  <span class="badge badge-info">INFO</span> <strong>Bonnes pratiques de sécurité détectées</strong>
+  <table class="data-table">
+    <tr><th>En-tête</th><th>Valeur</th><th>Statut</th></tr>
+    <tr><td>Strict-Transport-Security</td><td>max-age=63072000; includeSubDomains; preload</td><td>✅ Excellent</td></tr>
+    <tr><td>Content-Security-Policy</td><td>Politique restrictive avec Supabase whitelisté</td><td>✅ Bon</td></tr>
+    <tr><td>X-Frame-Options</td><td>SAMEORIGIN</td><td>✅ Bon</td></tr>
+    <tr><td>X-Content-Type-Options</td><td>nosniff</td><td>✅ Bon</td></tr>
+    <tr><td>Referrer-Policy</td><td>strict-origin-when-cross-origin</td><td>✅ Bon</td></tr>
+    <tr><td>Permissions-Policy</td><td>camera=(), microphone=(), geolocation=()</td><td>✅ Bon</td></tr>
+    <tr><td>Cross-Origin-Opener-Policy</td><td>same-origin</td><td>✅ Bon</td></tr>
+  </table>
+</div>
+
+<hr>
+
+<h2 id="recommandations">🛠️ Recommandations de correction</h2>
+
+<div class="finding info">
+  <span class="badge badge-info">FIX</span> <strong>Actions prioritaires</strong>
+  <ol style="margin:8px 0 0 20px;">
+    <li style="margin:8px 0;"><strong>Configurer les Row-Level Security (RLS) Supabase :</strong> Activer les policies SELECT sur toutes les tables. Seuls les utilisateurs authentifiés doivent pouvoir lire les données.</li>
+    <li style="margin:8px 0;"><strong>Ne pas exposer la clé anon dans le JS :</strong> Utiliser une API gateway ou un proxy pour les requêtes sensibles.</li>
+    <li style="margin:8px 0;"><strong>Limiter le Storage :</strong> Configurer les policies d'accès aux buckets pour empêcher le listing des fichiers.</li>
+    <li style="margin:8px 0;"><strong>Ajouter un rate limiting :</strong> Empêcher le scraping massif de la base de données.</li>
+    <li style="margin:8px 0;"><strong>Monitoring :</strong> Activer les logs Supabase pour détecter les accès non autorisés.</li>
+  </ol>
+</div>
+
+<hr>
+
+<p style="text-align:center;color:#64748b;margin-top:30px;">
+  Rapport généré par <strong>IRON MAN AI</strong> — 23 août 2026<br>
+  <span style="font-size:12px;">286+ tests automatisés · WAF bypass · Exploitation automatique · Dump de base de données</span>
+</p>
+
+</div>
+</body>
+</html>

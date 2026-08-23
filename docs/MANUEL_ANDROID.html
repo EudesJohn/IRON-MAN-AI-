@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANUEL ANDROID</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<h1>MANUEL ANDROID</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Analyse Android</h1>
+
+<p>Le module <strong>Android</strong> de IRON MAN AI réalise une analyse statique de</p>
+<p>sécurité d'un fichier APK/AAB (application Android) : permissions,</p>
+<p>composants exportés, secrets codés en dur, code à risque (WebView, crypto</p>
+<p>faible, SQL, TLS…), URLs, le tout sans décompiler entièrement</p>
+<p>l'application.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> N'analysez que des applications que vous</blockquote>
+<blockquote>avez développées, que vous possédez, ou pour lesquelles vous avez</blockquote>
+<blockquote>une <strong>autorisation écrite</strong> (audit interne, test d'intrusion mandaté).</blockquote>
+<blockquote>Le flag <code>--authorized</code> est obligatoire. Analyser une application que</blockquote>
+<blockquote>vous ne possédez pas (pour voler des secrets ou contourner des</blockquote>
+<blockquote>protections) est illégal et n'est pas couvert par cet outil.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>Python 3.10+</strong> (le cœur est en stdlib, aucune dépendance).</li></ul>
+<ul><li>L'analyse de base (manifeste binaire, chaînes dex, secrets) fonctionne <strong>sans aucun outil externe</strong> : le manifeste Android est un format binaire (AXML) décodé nativement par le module.</li></ul>
+<ul><li><strong>Optionnel</strong> (analyse enrichie) : - <code>apktool</code> : décode le manifeste et les ressources (<code>sudo apt-get install -y apktool</code>) - <code>jadx</code> : décompilation complète du code Java (<code>sudo apt-get install -y jadx</code>)</li></ul>
+
+<p>Vérifiez les outils disponibles :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --android --check</code></pre>
+
+<hr>
+
+<h2>2. Première analyse : un APK en une commande</h2>
+
+<pre><code>python mobile_scan.py --android --apk /chemin/app.apk --authorized</code></pre>
+
+<p>Le module affiche d'abord les outils disponibles, puis le <strong>résumé</strong> de</p>
+<p>l'analyse :</p>
+
+<pre><code>  Package           : com.example.app
+  Version           : 2.4.1 (code 241)
+  minSdk/targetSdk  : 23 / 34
+  SHA-256           : 3f2a9c1d…
+
+  Total findings    : 12
+    high     4    ████
+    medium   6    ██████
+    low      2    ██
+  Permissions dangereuses : 3
+  Composants exportés     : 2
+  Secrets détectés        : 1</code></pre>
+
+<p>Puis le détail des findings, classés par sévérité.</p>
+
+<hr>
+
+<h2>3. Ce que l'outil détecte</h2>
+
+<h3>Manifeste (AndroidManifest.xml)</h3>
+<ul><li><strong>Permissions dangereuses</strong> : CAMERA, RECORD_AUDIO, LOCALISATION, SMS, contacts… (protection level *dangerous*).</li></ul>
+<ul><li><strong>Permissions à haut risque</strong> : QUERY_ALL_PACKAGES, MANAGE_EXTERNAL_STORAGE, SYSTEM_ALERT_WINDOW, REQUEST_INSTALL_PACKAGES…</li></ul>
+<ul><li><strong>Composants exportés</strong> : activity/service/receiver/provider invocables par d'autres applications.</li></ul>
+<ul><li><strong>Debuggable</strong> (<code>android:debuggable="true"</code>), <strong>backup autorisé</strong> (<code>android:allowBackup="true"</code>), <strong>trafic en clair</strong> (<code>android:usesCleartextTraffic="true"</code>).</li></ul>
+<ul><li><strong>minSdkVersion obsolète</strong> (&lt; 21, Android 5.0).</li></ul>
+
+<h3>Bytecode (classes*.dex)</h3>
+<ul><li><strong>Secrets codés en dur</strong> : clés AWS (AKIA…), clés API Google (AIza…), Stripe, tokens GitHub/Slack/Firebase, clés privées PEM, <code>password=...</code> / <code>api_key=...</code> dans le code.</li></ul>
+<ul><li><strong>Code à risque</strong> : WebView avec JavaScript, <code>addJavascriptInterface</code>, hachage MD5/SHA-1, chiffrement faible (DES/RC4/AES-ECB), requêtes SQL concaténées, validation TLS désactivée, accès aux identifiants de l'appareil (IMEI…), chargement dynamique de code.</li></ul>
+<ul><li><strong>URLs</strong> : endpoints HTTP(S) embarqués, signalés s'ils utilisent HTTP en clair.</li></ul>
+
+<hr>
+
+<h2>4. Produire un rapport HTML/JSON</h2>
+
+<pre><code>python mobile_scan.py --android --apk app.apk --authorized -o /tmp/rapport_app
+# → /tmp/rapport_app.json + /tmp/rapport_app.html</code></pre>
+
+<ul><li><code>-o rapport.html</code> : HTML seul ; <code>-o rapport.json</code> : JSON seul.</li></ul>
+<ul><li>Le rapport HTML est un document autonome et lisible dans un navigateur (findings triés par sévérité, permissions, composants, secrets, URLs).</li></ul>
+
+<hr>
+
+<h2>5. Options utiles</h2>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--no-secrets</code></td>
+<td>Désactive la détection de secrets</td>
+</tr>
+<tr>
+<td><code>--no-code</code></td>
+<td>Désactive l'analyse du bytecode (dex)</td>
+</tr>
+<tr>
+<td><code>--jadx</code></td>
+<td><strong>Enrichit l'analyse par décompilation jadx</strong> (lent : ~10 min sur une grosse app)</td>
+</tr>
+<tr>
+<td><code>-v</code> / <code>--verbose</code></td>
+<td>Affiche le détail complet des findings</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Affiche les étapes sans rien analyser</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>6. Aller plus loin avec apktool / jadx</h2>
+
+<p>Si <code>apktool</code> est installé, le manifeste binaire est décodé par apktool</p>
+<p>(analyse plus fidèle des ressources). Si <code>jadx</code> est installé, ajoutez</p>
+<p><strong><code>--jadx</code></strong> pour lancer une <strong>décompilation complète</strong> en complément :</p>
+<p>les mêmes patterns de code à risque sont recherchés dans le code Java</p>
+<p>décompilé, avec le fichier et la ligne exacts.</p>
+
+<blockquote>⚠️ La décompilation jadx d'une application réelle (milliers de classes)</blockquote>
+<blockquote>prend <strong>~10 minutes</strong> et consomme beaucoup de RAM. Elle est <strong>opt-in</strong> :</blockquote>
+<blockquote>sans <code>--jadx</code>, l'analyse (manifeste + dex + secrets) prend quelques</blockquote>
+<blockquote>secondes.</blockquote>
+
+<p>Installation :</p>
+
+<pre><code>sudo apt-get update
+sudo apt-get install -y apktool jadx</code></pre>
+
+<hr>
+
+<h2>7. Interpréter les résultats</h2>
+
+<ul><li><strong>high / critical</strong> : à corriger en priorité — secret exposé, trafic en clair, composant exporté sensible, TLS désactivé.</li></ul>
+<ul><li><strong>medium</strong> : à corriger selon le contexte — hachage faible, backup autorisé, minSdk obsolète.</li></ul>
+<ul><li><strong>low</strong> : bonnes pratiques — permissions dangereuses justifiées, composants exportés intentionnels.</li></ul>
+
+<p>Chaque finding contient une <strong>recommandation</strong> précise (utiliser le</p>
+<p>Android Keystore, passer en AES-GCM, épingler les certificats,</p>
+<p>paramétrer les requêtes SQL…).</p>
+
+<hr>
+
+<h2>8. Bonnes pratiques pour une utilisation efficace</h2>
+
+<ol><li><strong>Cadre légal d'abord</strong> : app possédée ou autorisation écrite.</li></ol>
+<ol><li><strong>Comparez les versions</strong> : analysez l'APK de production ET un build de dev — les secrets et le flag debuggable s'y glissent souvent.</li></ol>
+<ol><li><strong>Vérifiez les faux positifs</strong> : un mot de passe dans un exemple de documentation embarqué n'est pas forcément un secret réel — confirmez dans le code décompilé.</li></ol>
+<ol><li><strong>Intégrez à la CI</strong> : lancez l'analyse à chaque build pour détecter les secrets avant la mise en production.</li></ol>
+<ol><li><strong>Ne stockez jamais de secrets</strong> : API keys dans le code = exposées (l'APK est téléchargeable par n'importe qui). Utilisez le backend et le Android Keystore.</li></ol>
+
+<hr>
+
+<h2>9. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>Fichier introuvable</code></td>
+<td>mauvais chemin</td>
+<td>Vérifiez le chemin de l'APK (<code>ls -la</code>)</td>
+</tr>
+<tr>
+<td><code>AndroidManifest.xml non lisible</code></td>
+<td>APK corrompu ou non-Android</td>
+<td>Vérifiez avec <code>file app.apk</code> (doit être un zip)</td>
+</tr>
+<tr>
+<td>Aucun finding</td>
+<td>app bien sécurisée… ou analyse incomplète</td>
+<td>Installez apktool/jadx pour l'analyse approfondie</td>
+</tr>
+<tr>
+<td><code>--apk</code> requis</td>
+<td>mode Android sans fichier</td>
+<td>Ajoutez <code>--apk &lt;fichier.apk&gt;</code></td>
+</tr>
+</table>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANUEL DEVICE</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<h1>MANUEL DEVICE</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Audit de périphérique Android</h1>
+
+<p>Le module <strong>Périphérique</strong> de IRON MAN AI audite la <strong>posture de sécurité</strong></p>
+<p>d'un appareil Android (téléphone, tablette) que vous possédez : type de</p>
+<p>verrou d'écran, chiffrement du stockage, débogage USB, adb réseau,</p>
+<p>bootloader/OEM unlock, SELinux, fausses positions, services</p>
+<p>d'accessibilité, sources inconnues. Il produit une <strong>note de posture /100</strong></p>
+<p>et des recommandations de durcissement.</p>
+
+<p>Toutes les commandes sont <strong>en lecture seule</strong> (getprop, settings get,</p>
+<p>dumpsys, getenforce) : <strong>aucune modification de l'appareil</strong>.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> Cet audit teste la *résistance* de votre</blockquote>
+<blockquote>appareil aux techniques de déverrouillage et de compromission. Il ne</blockquote>
+<blockquote>permet <strong>pas</strong> de déverrouiller un appareil que vous ne possédez pas.</blockquote>
+<blockquote>Le flag <code>--authorized</code> est obligatoire : votre matériel ou un appareil</blockquote>
+<blockquote>pour lequel vous avez une autorisation écrite (audit interne, test</blockquote>
+<blockquote>mandaté). Tenter de contourner le verrou d'un appareil sans</blockquote>
+<blockquote>autorisation est illégal.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>adb</strong> : <code>sudo apt-get install -y adb</code> (ou <code>android-tools-adb</code>).</li></ul>
+<ul><li>Un appareil Android <strong>branché en USB</strong> avec <strong>débogage USB activé</strong> : 1. Paramètres → À propos → tapez 7 fois sur « Numéro de build » (active les options développeur) ; 2. Paramètres → Options développeur → activez <strong>Débogage USB</strong> ; 3. À la première connexion, acceptez l'invite « Autoriser le débogage USB ? » sur l'écran de l'appareil (cochez « Toujours autoriser »).</li></ul>
+<ul><li><strong>Important</strong> : activer le débogage USB nécessite l'accès à l'écran de l'appareil — c'est la garantie que c'est le vôtre.</li></ul>
+
+<p>Vérifiez les outils :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --check          # vérifie les 3 modules (WiFi, Android, adb)
+python mobile_scan.py --device --check # vérifie uniquement adb</code></pre>
+
+<hr>
+
+<h2>2. Première analyse : un appareil en une commande</h2>
+
+<pre><code>python mobile_scan.py --device --authorized</code></pre>
+
+<ul><li>Si un <strong>seul</strong> appareil est connecté, il est détecté automatiquement.</li></ul>
+<ul><li>Si <strong>plusieurs</strong> sont branchés, précisez le serial (<code>adb devices</code> pour le lister) :</li></ul>
+
+<pre><code>python mobile_scan.py --device --serial ZY12345678 --authorized</code></pre>
+
+<p>Sortie console : modèle, version Android, correctif de sécurité, verrou,</p>
+<p>chiffrement, SELinux, puis la liste des contrôles avec leur verdict</p>
+<p>(🔴 critique, 🟠 avertissement, 🟢 ok) et la <strong>note de posture /100</strong>.</p>
+
+<hr>
+
+<h2>3. Rapport complet (JSON + HTML)</h2>
+
+<pre><code>python mobile_scan.py --device --authorized -o /tmp/rapport_appareil</code></pre>
+
+<p>Produit <code>rapport_appareil.json</code> et <code>rapport_appareil.html</code> (autonome,</p>
+<p>lisible dans un navigateur) : informations de l'appareil, note de posture,</p>
+<p>chaque contrôle avec sa recommandation.</p>
+
+<hr>
+
+<h2>4. Les contrôles réalisés</h2>
+
+<table>
+<tr>
+<th>Contrôle</th>
+<th>Risque si mauvais</th>
+<th>Sévérité</th>
+</tr>
+<tr>
+<td>Verrou d'écran (aucun)</td>
+<td>accès physique = accès aux données</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Chiffrement du stockage (non chiffré)</td>
+<td>données lisibles sans clé</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td><strong>adb réseau</strong> (<code>adb tcpip</code>)</td>
+<td>écoute réseau sans câble</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>SELinux (Permissive)</td>
+<td>isolation affaiblie</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Fausses positions (mock location)</td>
+<td>GPS falsifiable</td>
+<td>🔴 critique</td>
+</tr>
+<tr>
+<td>Débogage USB activé</td>
+<td>commandes depuis un PC (nécessaire pour l'audit)</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Bootloader déverrouillé / OEM unlock</td>
+<td>firmware modifié possible</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Build userdebug/eng</td>
+<td>accès root possible</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Services d'accessibilité actifs</td>
+<td>lecture écran/frappes</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Sources inconnues / vérification off</td>
+<td>sideload malveillant</td>
+<td>🟠</td>
+</tr>
+<tr>
+<td>Vérification des applications (Play Protect) off</td>
+<td>apps malveillantes</td>
+<td>🟠</td>
+</tr>
+</table>
+
+<p>La note part de 100 : <strong>-25 par contrôle critique, -10 par avertissement</strong></p>
+<p>(bornée à 0).</p>
+
+<hr>
+
+<h2>5. Interpréter le résultat et durcir l'appareil</h2>
+
+<ul><li><strong>Score ≥ 80</strong> : bonne posture. Pensez à <strong>désactiver le débogage USB</strong> après l'audit (c'est le seul avertissement habituel).</li></ul>
+<ul><li><strong>Score 40–79</strong> : des points faibles réels (ex. pas de verrou, sources inconnues) — appliquez les recommandations de chaque contrôle.</li></ul>
+<ul><li><strong>Score &lt; 40</strong> : appareil très exposé (adb réseau, SELinux permissif, stockage non chiffré…) — durcissez avant usage quotidien.</li></ul>
+
+<p>Le rapport HTML détaille pour chaque contrôle la <strong>recommandation</strong></p>
+<p>exacte (paramètres à modifier, commandes fastboot, etc.).</p>
+
+<hr>
+
+<h2>6. Cas d'usage efficaces</h2>
+
+<ol><li><strong>Avant de vendre / donner un appareil</strong> : vérifiez qu'il n'y a pas d'accès résiduel (verrou, FRP, adb réseau) et faites une réinitialisation propre.</li></ol>
+<ol><li><strong>Parc d'entreprise</strong> : auditez chaque appareil fourni aux employés et imposez un score minimum (ex. ≥ 80) avant déploiement.</li></ol>
+<ol><li><strong>Après une réparation</strong> (écran changé, ROM réinstallée) : confirmez que le bootloader est re-verrouillé (état green) et SELinux Enforcing.</li></ol>
+<ol><li><strong>Appareil d'occasion acheté</strong> : auditez-le avant d'y mettre vos données — un bootloader déverrouillé ou un adb réseau actif est un signal d'alerte.</li></ol>
+
+<hr>
+
+<h2>7. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td>« Aucun appareil connecté »</td>
+<td>débogage USB désactivé ou invite non acceptée</td>
+<td>Activez le débogage USB et acceptez l'invite sur l'appareil</td>
+</tr>
+<tr>
+<td>« Plusieurs appareils connectés »</td>
+<td>2+ appareils branchés</td>
+<td><code>adb devices</code>, puis <code>--serial &lt;serial&gt;</code></td>
+</tr>
+<tr>
+<td>« adb introuvable »</td>
+<td>outil absent</td>
+<td><code>sudo apt-get install -y adb</code></td>
+</tr>
+<tr>
+<td>Verrou « inconnu »</td>
+<td>build exotique / ROM modifiée</td>
+<td>Vérifiez manuellement : <code>adb shell dumpsys lock_settings</code></td>
+</tr>
+<tr>
+<td>Résultats identiques à chaque fois</td>
+<td>cache adb</td>
+<td><code>adb kill-server &amp;&amp; adb start-server</code></td>
+</tr>
+</table>
+
+<hr>
+
+<h2>8. Limites (honnêteté technique)</h2>
+
+<ul><li>L'audit lit l'état <strong>actuel</strong> de l'appareil : il ne détecte pas les malwares déjà installés, ni ne « déverrouille » quoi que ce soit.</li></ul>
+<ul><li>Le type de verrou est lu via <code>dumpsys</code> : sur certaines ROM (MIUI, OneUI…), la valeur peut être « inconnu » — le contrôle reste utile via les autres indicateurs.</li></ul>
+<ul><li>Il ne remplace pas une analyse de sécurité approfondie (le module <code>--android</code> complète pour les applications, le module <code>--wifi</code> pour le réseau).</li></ul>
+
+<hr>
+
+<p>*Cadre d'utilisation : appareils que vous possédez ou êtes autorisé à</p>
+<p>tester. <code>--authorized</code> est obligatoire.*</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</body>
+</html>

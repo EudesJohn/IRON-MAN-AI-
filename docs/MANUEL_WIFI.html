@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANUEL WIFI</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<h1>MANUEL WIFI</h1>
+<h1>Manuel d'utilisation — IRON MAN AI : Audit WiFi</h1>
+
+<p>Le module <strong>WiFi</strong> de IRON MAN AI permet de tester la sécurité d'un réseau</p>
+<p>WiFi que vous possédez (ou pour lequel vous avez une autorisation écrite) :</p>
+<p>scan des réseaux à portée, capture et crack du handshake WPA2, audit WPS,</p>
+<p>recommandations de durcissement.</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> Ce module ne s'utilise que sur votre propre</blockquote>
+<blockquote>réseau ou sur un réseau que vous êtes <strong>explicitement autorisé</strong> à</blockquote>
+<blockquote>tester (contrat de pentest, réseau d'entreprise mandaté…). Le flag</blockquote>
+<blockquote><code>--authorized</code> est obligatoire.</blockquote>
+<blockquote><strong>Cracker le WiFi d'un inconnu est illégal</strong> et n'est pas couvert par</blockquote>
+<blockquote>cet outil. Le test de déauthentification perturbe le réseau : faites-le</blockquote>
+<blockquote>uniquement sur votre matériel et prévenez les utilisateurs.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>Python 3.10+</strong> (le cœur est en stdlib, aucune dépendance).</li></ul>
+<ul><li><strong>Kali Linux</strong> avec une <strong>carte WiFi compatible mode monitor</strong>.</li></ul>
+<ul><li>Les outils <strong>aircrack-ng</strong> (airmon-ng, airodump-ng, aireplay-ng, aircrack-ng) : <code>sudo apt-get install -y aircrack-ng</code></li></ul>
+<ul><li>Optionnel : <code>reaver</code> / <code>bully</code> / <code>pixiewps</code> (audit WPS), <code>wash</code>, <code>hashcat</code> ou <code>john</code> (crack accéléré).</li></ul>
+
+<p>Vérifiez la présence des outils (aucune action sur le réseau) :</p>
+
+<pre><code>cd /chemin/codescan
+python mobile_scan.py --wifi --check</code></pre>
+
+<hr>
+
+<h2>2. Première utilisation : scanner les réseaux à portée</h2>
+
+<pre><code># Lister les interfaces WiFi disponibles
+iw dev
+
+# Lancer le scan (30 s par défaut)
+sudo python mobile_scan.py --wifi --interface wlan0 --authorized</code></pre>
+
+<p>Le script active le <strong>mode monitor</strong> sur l'interface, scanne pendant la</p>
+<p>durée demandée puis affiche les réseaux détectés, triés par force de</p>
+<p>signal :</p>
+
+<pre><code>  1. MonReseau                  AA:BB:CC:DD:EE:FF  ch 6   -45 dBm  WPA2
+  2. Voisin_WPA                11:22:33:44:55:66  ch 11  -70 dBm  WPA</code></pre>
+
+<ul><li><code>--scan-time N</code> : durée du scan en secondes (30 par défaut).</li></ul>
+<ul><li>L'interface est <strong>automatiquement restaurée</strong> à la fin (mode managed, NetworkManager relancé).</li></ul>
+
+<blockquote>💡 <strong>Conseil d'utilisation efficace</strong> : lancez le scan en premier, puis</blockquote>
+<blockquote>relevez le <strong>BSSID</strong> et le <strong>canal</strong> du réseau que vous voulez tester</blockquote>
+<blockquote>(le vôtre). Ces deux valeurs servent aux étapes suivantes.</blockquote>
+
+<hr>
+
+<h2>3. Tester la robustesse du mot de passe : capture + crack WPA2</h2>
+
+<p>La méthode standard pour vérifier qu'un mot de passe WiFi n'est pas</p>
+<p>faible :</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --interface wlan0 \
+    --bssid AA:BB:CC:DD:EE:FF --ssid MonReseau --channel 6 \
+    --crack --authorized</code></pre>
+
+<p>Ce que fait la commande :</p>
+
+<ol><li><strong>Capture ciblée</strong> : airodump-ng écoute le canal du réseau cible.</li></ol>
+<ol><li><strong>Déauthentification</strong> : un client connecté est déconnecté (5 paquets deauth) pour forcer sa reconnexion — c'est pendant cette reconnexion que le handshake WPA2 est capturé.</li></ol>
+<ol><li><strong>Crack par dictionnaire</strong> : aircrack-ng essaie chaque mot de passe de la wordlist (rockyou par défaut si présente) contre le handshake.</li></ol>
+
+<p>Options utiles :</p>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--capture-time N</code></td>
+<td>Durée de capture (120 s par défaut)</td>
+</tr>
+<tr>
+<td><code>-w /chemin/wordlist.txt</code></td>
+<td>Dictionnaire à utiliser</td>
+</tr>
+<tr>
+<td><code>--method john</code> / <code>--method hashcat</code></td>
+<td>Autre outil de crack</td>
+</tr>
+<tr>
+<td><code>--wps</code></td>
+<td>Ajoute un test de vulnérabilité WPS (reaver)</td>
+</tr>
+</table>
+
+<p>Si le mot de passe est trouvé, il s'affiche :</p>
+
+<pre><code>[wifi] 🎉 MOT DE PASSE TROUVÉ : motdepassefaible123</code></pre>
+
+<blockquote>💡 <strong>Conseil d'utilisation efficace</strong> : si la capture échoue</blockquote>
+<blockquote>(« Aucun handshake »), c'est qu'aucun client ne s'est reconnecté.</blockquote>
+<blockquote>Relancez avec un client actif (téléphone en veille se reconnecte</blockquote>
+<blockquote>souvent tout seul) ou augmentez <code>--capture-time</code>. Pour vos tests,</blockquote>
+<blockquote>utilisez une wordlist adaptée (rockyou pour les mots de passe</blockquote>
+<blockquote>courants, ou une wordlist maison avec vos anciens mots de passe).</blockquote>
+
+<hr>
+
+<h2>4. Audit WPS</h2>
+
+<p>Le WPS (Wi-Fi Protected Setup) est une porte d'entrée connue : un PIN</p>
+<p>faible ou une implémentation buguée permet de retrouver la clé WPA2 sans</p>
+<p>dictionnaire.</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --interface wlan0 \
+    --bssid AA:BB:CC:DD:EE:FF --channel 6 --wps --authorized</code></pre>
+
+<ul><li><code>reaver</code> tente les PIN possibles (peut prendre du temps — borné à 30 min par tentative).</li></ul>
+<ul><li>Si le WPS est vulnérable, le PIN (et parfois le mot de passe) s'affiche.</li></ul>
+<ul><li>Si le routeur <strong>verrouille</strong> le WPS après plusieurs essais, l'outil le signale.</li></ul>
+
+<blockquote>💡 <strong>Conseil</strong> : l'audit WPS est bruyant (le routeur peut se verrouiller</blockquote>
+<blockquote>ou se redémarrer). À n'utiliser que sur votre propre équipement, en</blockquote>
+<blockquote>dehors des heures d'usage.</blockquote>
+
+<hr>
+
+<h2>5. Simuler sans rien casser : le mode dry-run</h2>
+
+<p>Avant chaque vraie campagne, visualisez <strong>exactement</strong> les commandes qui</p>
+<p>seraient exécutées :</p>
+
+<pre><code>python mobile_scan.py --wifi --bssid AA:BB:CC:DD:EE:FF --crack --wps \
+    --authorized --dry-run</code></pre>
+
+<p>Aucun paquet n'est émis : utile pour vérifier la ligne de commande et</p>
+<p>pour la documentation.</p>
+
+<hr>
+
+<h2>6. Rapport de l'audit</h2>
+
+<p>Ajoutez <code>-o rapport</code> pour produire un <strong>rapport JSON + HTML</strong> consolidé</p>
+<p>(réseaux, handshake, crack, WPS, recommandations) :</p>
+
+<pre><code>sudo python mobile_scan.py --wifi --bssid AA:BB:CC:DD:EE:FF --crack \
+    --authorized -o /tmp/rapport_wifi
+# → /tmp/rapport_wifi.json + /tmp/rapport_wifi.html</code></pre>
+
+<p>Le rapport se termine par des <strong>recommandations de sécurité</strong> : mot de</p>
+<p>passe plus long, WPS désactivé, WPA3 si disponible, désactivation du</p>
+<p>SSID broadcast, etc.</p>
+
+<hr>
+
+<h2>7. Bonnes pratiques pour une utilisation efficace</h2>
+
+<ol><li><strong>Cadre légal d'abord</strong> : réseau possédé ou autorisation écrite. Documentez le périmètre avant de commencer.</li></ol>
+<ol><li><strong>Interface propre</strong> : utilisez une carte USB dédiée (Alfa AWUS036ACH ou similaire) — les cartes internes supportent mal le mode monitor.</li></ol>
+<ol><li><strong>Antenne et position</strong> : rapprochez-vous du routeur testé pour un signal stable (&gt; -70 dBm) : le handshake se capture beaucoup plus vite.</li></ol>
+<ol><li><strong>Wordlists adaptées</strong> : rockyou pour les mots de passe courants ; pour tester la politique d'un réseau, créez une wordlist dédiée (années, prénoms, marques…).</li></ol>
+<ol><li><strong>Minimisez l'impact</strong> : les deauth et reaver perturbent le réseau — testez en dehors des heures d'utilisation.</li></ol>
+<ol><li><strong>Vérifiez les recommandations</strong> : changez le mot de passe, désactivez WPS, passez en WPA3/WPA2-AES (jamais TKIP), activez le filtrage des invités.</li></ol>
+
+<hr>
+
+<h2>8. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>Interface monitor non active</code></td>
+<td>mode monitor non démarré</td>
+<td>Vérifiez que vous êtes root (<code>sudo</code>) et que la carte supporte le monitor (<code>iw list</code>)</td>
+</tr>
+<tr>
+<td>Aucun réseau détecté</td>
+<td>mauvaise interface ou canal</td>
+<td>Relancez avec <code>--interface</code> correct ; essayez <code>airodump-ng &lt;iface&gt;</code> à la main</td>
+</tr>
+<tr>
+<td>Aucun handshake</td>
+<td>aucun client actif</td>
+<td>Attendez une reconnexion, augmentez <code>--capture-time</code></td>
+</tr>
+<tr>
+<td><code>Aucune wordlist trouvée</code></td>
+<td>pas de wordlist Kali</td>
+<td>Installez rockyou : <code>sudo apt-get install -y wordlists</code> puis décompressez <code>/usr/share/wordlists/rockyou.txt.gz</code></td>
+</tr>
+<tr>
+<td>WPS verrouillé</td>
+<td>trop de tentatives</td>
+<td>Patientez (verrou temporaire) ; le test WPS est à faire une seule fois</td>
+</tr>
+</table>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</body>
+</html>

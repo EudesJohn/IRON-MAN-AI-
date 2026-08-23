@@ -1,0 +1,348 @@
+{
+  "version": "1.0",
+  "description": "Base de patterns externalisée de CodeScan. Chaque règle possède un identifiant, une catégorie, une sévérité, une liste de langages cibles et le texte affiché. Les règles 'builtin' (long_function, cyclomatic_complexity, entropy) sont gérées par le code des analyseurs.",
+  "generic": [
+    {
+      "id": "generic-sql-injection",
+      "category": "injection",
+      "severity": "high",
+      "languages": ["php", "javascript", "typescript", "java", "csharp", "ruby", "go", "kotlin", "swift", "scala"],
+      "pattern": "(?i)\\b(SELECT|INSERT\\s+INTO|UPDATE|DELETE\\s+FROM|DROP\\s+TABLE)[^;\\n]{0,150}\\s*(\\$\\w+|['\"]\\s*\\+\\s*\\w+|['\"]\\s*\\.\\s*\\w+|\\$\\{|\\+\\s*\\w+)",
+      "title": "Injection SQL possible (requête construite dynamiquement)",
+      "description": "Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. ' OR '1'='1).",
+      "recommendation": "Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL."
+    },
+    {
+      "id": "generic-xss-innerhtml",
+      "category": "xss",
+      "severity": "high",
+      "languages": ["javascript", "typescript", "html"],
+      "pattern": "(?i)\\.innerHTML\\s*[+]*=",
+      "title": "XSS possible (innerHTML)",
+      "description": "Affectation à innerHTML avec un contenu potentiellement non échappé. Permet l'exécution de scripts injectés (XSS).",
+      "recommendation": "Utiliser textContent pour du texte brut, ou échapper correctement les entrées avant toute insertion HTML."
+    },
+    {
+      "id": "generic-xss-dangerouslyset",
+      "category": "xss",
+      "severity": "high",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)dangerouslySetInnerHTML",
+      "title": "XSS possible (dangerouslySetInnerHTML - React)",
+      "description": "dangerouslySetInnerHTML injecte du HTML brut dans le DOM. Toute donnée non assainie rend l'application vulnérable au XSS.",
+      "recommendation": "Éviter dangerouslySetInnerHTML ; assainir le HTML avec une librairie comme DOMPurify si son usage est inévitable."
+    },
+    {
+      "id": "generic-xss-document-write",
+      "category": "xss",
+      "severity": "high",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)document\\.write\\s*\\(",
+      "title": "XSS possible (document.write)",
+      "description": "document.write() peut injecter du contenu HTML non échappé dans la page.",
+      "recommendation": "Préférer les API DOM (textContent, createElement) et échapper les données."
+    },
+    {
+      "id": "generic-xss-vhtml",
+      "category": "xss",
+      "severity": "medium",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)\\bv-html\\b",
+      "title": "XSS possible (v-html - Vue.js)",
+      "description": "La directive v-html de Vue injecte du HTML brut ; une donnée non assainie est une porte ouverte au XSS.",
+      "recommendation": "Préférer l'interpolation de texte {{ }} et assainir le HTML si besoin."
+    },
+    {
+      "id": "generic-eval",
+      "category": "security_misc",
+      "severity": "high",
+      "languages": ["javascript", "typescript", "php"],
+      "pattern": "(?i)\\beval\\s*\\(",
+      "title": "Exécution de code dynamique (eval)",
+      "description": "eval() exécute du code arbitraire. Si une entrée utilisateur y est passée, c'est une exécution de code à distance (RCE).",
+      "recommendation": "Éviter eval(). Utiliser JSON.parse(), un parser dédié ou la fonction Function avec prudence."
+    },
+    {
+      "id": "generic-php-unserialize",
+      "category": "security_misc",
+      "severity": "critical",
+      "languages": ["php"],
+      "pattern": "(?i)\\bunserialize\\s*\\(",
+      "title": "Désérialisation non sûre (unserialize)",
+      "description": "unserialize() sur des données non fiables peut déclencher des gadgets PHP et exécuter du code arbitraire (PHP object injection).",
+      "recommendation": "Utiliser json_decode, ou restreindre les classes autorisées : unserialize($data, ['allowed_classes' => false])."
+    },
+    {
+      "id": "generic-command-exec",
+      "category": "injection",
+      "severity": "high",
+      "languages": ["php", "ruby", "bash"],
+      "pattern": "(?i)\\b(shell_exec|passthru|system|popen|proc_open)\\s*\\(",
+      "title": "Exécution de commandes système",
+      "description": "Appel à une fonction d'exécution de commandes shell avec des arguments potentiellement non validés (injection de commandes).",
+      "recommendation": "Éviter les commandes shell ; utiliser des API natives, valider strictement les entrées et échapper les arguments."
+    },
+    {
+      "id": "generic-node-child-process",
+      "category": "injection",
+      "severity": "high",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)(?:child_process\\s*\\.\\s*|require\\s*\\(\\s*['\"]child_process['\"]\\s*\\)\\s*\\.)\\s*(exec|execSync|spawn|spawnSync)\\s*\\(",
+      "title": "Exécution de commandes système (Node.js)",
+      "description": "child_process.exec/spawn lance une commande shell. Une entrée utilisateur non échappée provoque une injection de commandes.",
+      "recommendation": "Préférer execFile/spawn sans shell et passer les arguments dans un tableau."
+    },
+    {
+      "id": "generic-node-child-process-import",
+      "category": "injection",
+      "severity": "medium",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)require\\s*\\(\\s*['\"]child_process['\"]\\s*\\)",
+      "title": "Import de child_process (exécution de commandes)",
+      "description": "Le module child_process est importé (y compris sous forme déstructurée : const { exec } = require('child_process')). Vérifier que les commandes lancées ne passent pas d'entrées utilisateur.",
+      "recommendation": "Limiter l'usage de child_process et ne jamais y concaténer des entrées non validées."
+    },
+    {
+      "id": "generic-js-exec-call",
+      "category": "injection",
+      "severity": "medium",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)\\bexec(Sync)?\\s*\\(",
+      "title": "Appel à exec() potentiel (commandes système)",
+      "description": "Un appel à exec() est présent. S'il provient de child_process et reçoit des entrées non fiables, c'est une injection de commandes.",
+      "recommendation": "Vérifier l'origine de exec() ; préférer execFile/spawn avec des arguments séparés."
+    },
+    {
+      "id": "generic-java-runtime-exec",
+      "category": "injection",
+      "severity": "high",
+      "languages": ["java", "kotlin"],
+      "pattern": "(?i)Runtime\\.getRuntime\\(\\)\\.exec\\s*\\(|ProcessBuilder\\s*\\(",
+      "title": "Exécution de commandes système (Java)",
+      "description": "Runtime.exec / ProcessBuilder exécutent des commandes système. Vérifier que les entrées ne sont pas concaténées dans la commande.",
+      "recommendation": "Valider et blanchir les entrées ; préférer ProcessBuilder avec des arguments séparés."
+    },
+    {
+      "id": "generic-secret-assignment",
+      "category": "secrets",
+      "severity": "high",
+      "languages": ["javascript", "typescript", "php", "java", "go", "ruby", "csharp", "kotlin", "swift", "scala", "bash", "html", "css"],
+      "pattern": "(?i)(password|passwd|pwd|api[_-]?key|apikey|secret|token|client[_-]?secret|access[_-]?key)\\s*[=:][\\s]*[\"'](?![$%])[^\"'\\n]{6,}[\"']",
+      "title": "Secret codé en dur",
+      "description": "Un mot de passe ou une clé semble être codé en dur dans le code. Les secrets doivent être gérés via des variables d'environnement ou un coffre-fort. NB : la valeur ne commence pas par $/% (référence de variable d'environnement, pas un secret).",
+      "recommendation": "Externaliser le secret dans une variable d'environnement ou un gestionnaire de secrets, et révoquer toute clé déjà exposée."
+    },
+    {
+      "id": "generic-todo-fixme",
+      "category": "code_quality",
+      "severity": "low",
+      "languages": ["python", "javascript", "typescript", "php", "java", "go", "ruby", "csharp", "c", "cpp", "rust", "kotlin", "swift", "html", "css", "scala", "bash", "sql", "yaml", "json", "markdown", "text"],
+      "pattern": "(?i)\\b(TODO|FIXME|HACK|XXX)\\b",
+      "title": "Marqueur de dette technique",
+      "description": "Un TODO/FIXME/HACK laissé dans le code indique du travail incomplet ou un correctif provisoire.",
+      "recommendation": "Traiter ces points dans le backlog ou les transformer en issues suivies."
+    },
+    {
+      "id": "generic-cors-permissive",
+      "category": "security_misc",
+      "severity": "high",
+      "languages": ["javascript", "typescript", "php", "java", "go", "python", "ruby", "csharp", "c", "cpp", "rust", "kotlin", "swift", "scala"],
+      "pattern": "(?i)access-control-allow-origin\\s*[:=]\\s*\\*",
+      "title": "CORS permissif (Access-Control-Allow-Origin: *)",
+      "description": "L'en-tête Access-Control-Allow-Origin est défini sur * (ou le configurateur CORS accepte toute origine). Cela permet à n'importe quel site d'appeler les API et de lire les réponses.",
+      "recommendation": "Restreindre la liste des origines autorisées et ne jamais combiner * avec l'utilisation de cookies (credentials)."
+    },
+    {
+      "id": "generic-regex-dos",
+      "category": "security_misc",
+      "severity": "high",
+      "languages": ["javascript", "typescript"],
+      "pattern": "(?i)\\bnew\\s+RegExp\\s*\\(\\s*(?![\"'`/])",
+      "title": "Regex construite dynamiquement (risque ReDoS)",
+      "description": "new RegExp() est appelé avec un argument non littéral (variable, concaténation). Une expression régulière invalide ou à backtracking exponentiel peut faire planter le process (ReDoS).",
+      "recommendation": "Utiliser une expression littérale (statique) /[...]/ et valider toute entrée entrant dans un RegExp."
+    },
+    {
+      "id": "generic-php-superglobal-input",
+      "category": "injection",
+      "severity": "medium",
+      "languages": ["php"],
+      "pattern": "\\b(_GET|_POST|_REQUEST|_COOKIE|_FILES|_SERVER)\\b",
+      "title": "Données brutes lues dans une superglobale",
+      "description": "Lecture directe d'une superglobale PHP ($_GET, $_POST, $_REQUEST…) sans filtrage visible. Les entrées utilisateur doivent être validées et échappées avant usage (SQL, HTML, shell).",
+      "recommendation": "Blanchir, valider strictement (type/filtre) et échapper le contexte une fois les entrées utilisées."
+    },
+    {
+      "id": "generic-sql-select-star",
+      "category": "code_quality",
+      "severity": "medium",
+      "languages": ["sql", "php", "javascript", "typescript", "java", "csharp", "python", "go", "ruby", "kotlin"],
+      "pattern": "(?i)\\bSELECT\\s+\\*\\s+FROM\\b",
+      "title": "SELECT * non ciblé",
+      "description": "Une requête SELECT * sélectionne toutes les colonnes : consommation mémoire/réseau inutile et couplage fragile aux changements de schéma.",
+      "recommendation": "Ne sélectionner que les colonnes réellement utilisées, explicitement listées."
+    },
+    {
+      "id": "generic-weak-crypto",
+      "category": "security_misc",
+      "severity": "medium",
+      "languages": ["php", "javascript", "typescript", "java", "csharp", "go", "ruby", "kotlin", "scala", "swift", "c", "cpp"],
+      "pattern": "(?i)(?:MessageDigest\\s*\\.\\s*getInstance\\s*\\(\\s*[\"'](?:MD5|SHA-?1)[\"']|(?:createHash|hash)\\s*[(]\\s*[\"'](?:md5|sha1|md2|md4)[\"']|\\b(?:md5|sha1|md2|md4|des|3des|rc2|rc4|arc4)\\s*\\()",
+      "title": "Fonction de hachage/chiffrement faible",
+      "description": "Un algorithme cryptographique faible (md5, sha1, DES, 3DES, RC2, RC4…) est utilisé. Ces algorithmes sont cassés ou vulnérables aux collisions et ne doivent pas protéger de données sensibles.",
+      "recommendation": "Utiliser sha256+ pour les hachages, bcrypt/argon2 pour les mots de passe, et AES (GCM) avec une clé gérée pour le chiffrement."
+    },
+    {
+      "id": "generic-php-xxe",
+      "category": "security_misc",
+      "severity": "high",
+      "languages": ["php"],
+      "pattern": "(?i)\\b(simplexml_load_string|simplexml_load_file)\\s*\\(|->loadXML\\s*\\(",
+      "title": "Parsing XML non sûr (risque XXE)",
+      "description": "Le parsing XML (simplexml, DOMDocument::loadXML) sans désactivation des entités externes est vulnérable à l'XXE : lecture de fichiers locaux, SSRF interne, déni de service.",
+      "recommendation": "Appeler libxml_disable_entity_loader(true) (ou utiliser LIBXML_NONET | LIBXML_NOENT avec précaution) et valider les entrées XML."
+    },
+    {
+      "id": "generic-path-traversal",
+      "category": "injection",
+      "severity": "medium",
+      "languages": ["php", "javascript", "typescript", "python", "java", "go", "ruby", "csharp", "kotlin", "swift"],
+      "pattern": "(?i)\\b(?:file_get_contents|fopen|readfile|readFile|readFileSync|createReadStream|unlink|os\\.path\\.join|path\\.join|open|include|require)\\s*\\([^)\\n]*?([\"'][^\"'\n]{0,40}[\"']\\s*[+.]\\s*\\$?\\w+|\\w+\\s*\\+)",
+      "title": "Chemin de fichier construit dynamiquement (risque de path traversal)",
+      "description": "Un chemin de fichier est construit par concaténation avec une variable (ex. \"uploads/\" . $nom). Si cette variable provient d'une entrée utilisateur non validée, un attaquant peut lire ou écrire des fichiers hors du dossier autorisé (../).",
+      "recommendation": "Valider/blanchir les entrées (autoriser uniquement des noms sûrs), utiliser des identifiants plutôt que des chemins, ou résoudre et vérifier le chemin final dans le répertoire autorisé."
+    },
+    {
+      "id": "generic-php-insecure-rand",
+      "category": "security_misc",
+      "severity": "low",
+      "languages": ["php"],
+      "pattern": "(?i)\\b(?:rand|mt_rand)\\s*\\(",
+      "title": "Générateur aléatoire non cryptographique (rand/mt_rand)",
+      "description": "rand()/mt_rand() produisent des valeurs prévisibles. Si elles servent à des jetons, mots de passe ou nonces, c'est une faille de sécurité.",
+      "recommendation": "Utiliser random_int() / random_bytes() pour tout usage lié à la sécurité."
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret-aws-access-key",
+      "name": "Clé d'accès AWS",
+      "category": "secrets",
+      "severity": "critical",
+      "pattern": "\\b(AKIA|ASIA)[0-9A-Z]{16}\\b",
+      "title": "Clé d'accès AWS exposée",
+      "description": "Un AWS Access Key ID est présent dans le code source ou un fichier commité.",
+      "recommendation": "Révoquer immédiatement la clé dans la console IAM, puis utiliser des rôles IAM ou AWS Secrets Manager."
+    },
+    {
+      "id": "secret-aws-secret-key",
+      "name": "Clé secrète AWS",
+      "category": "secrets",
+      "severity": "critical",
+      "pattern": "(?i)\\baws[_-]?secret[_-]?access[_-]?key\\s*[=:]\\s*[\"'][A-Za-z0-9/+=]{40}[\"']",
+      "title": "Clé secrète AWS exposée",
+      "description": "Un AWS Secret Access Key est présent en clair dans le code ou un fichier commité.",
+      "recommendation": "Révoquer immédiatement la clé dans la console IAM et utiliser des rôles IAM ou AWS Secrets Manager."
+    },
+    {
+      "id": "secret-google-api",
+      "name": "Clé API Google",
+      "category": "secrets",
+      "severity": "high",
+      "pattern": "\\bAIza[0-9A-Za-z\\-_]{35}\\b",
+      "title": "Clé API Google exposée",
+      "description": "Une clé API Google (AIza...) est visible dans le code.",
+      "recommendation": "Restreindre la clé dans Google Cloud Console et la régénérer."
+    },
+    {
+      "id": "secret-github-token",
+      "name": "Token GitHub",
+      "category": "secrets",
+      "severity": "critical",
+      "pattern": "\\bgh[pousr]_[0-9A-Za-z]{36,}\\b|\\bgithub_pat_[0-9A-Za-z_]{22,}\\b",
+      "title": "Token GitHub exposé",
+      "description": "Un token d'accès personnel GitHub est présent dans le code.",
+      "recommendation": "Révoquer le token dans les paramètres GitHub et utiliser les secrets d'environnement."
+    },
+    {
+      "id": "secret-slack-token",
+      "name": "Token Slack",
+      "category": "secrets",
+      "severity": "high",
+      "pattern": "\\bxox[baprs]-[0-9A-Za-z\\-]{10,}\\b",
+      "title": "Token Slack exposé",
+      "description": "Un token Slack (xox...) est présent dans le code.",
+      "recommendation": "Révoquer le token et utiliser les variables d'environnement."
+    },
+    {
+      "id": "secret-stripe",
+      "name": "Clé Stripe",
+      "category": "secrets",
+      "severity": "critical",
+      "pattern": "\\b(?:sk|rk)_(?:live|test)_[0-9a-zA-Z]{16,}\\b",
+      "title": "Clé Stripe exposée",
+      "description": "Une clé secrète Stripe (sk_live...) est présente dans le code.",
+      "recommendation": "Révoquer la clé dans le dashboard Stripe et la déplacer vers un gestionnaire de secrets."
+    },
+    {
+      "id": "secret-private-key",
+      "name": "Clé privée",
+      "category": "secrets",
+      "severity": "critical",
+      "pattern": "-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY( BLOCK)?-----",
+      "title": "Clé privée exposée",
+      "description": "Un bloc de clé privée est présent dans le code. Une clé privée ne doit jamais être commitée.",
+      "recommendation": "Remplacer immédiatement la paire de clés et stocker la clé hors du dépôt."
+    },
+    {
+      "id": "secret-npm-token",
+      "name": "Token npm",
+      "category": "secrets",
+      "severity": "high",
+      "pattern": "\\bnpm_[0-9A-Za-z]{36}\\b",
+      "title": "Token npm exposé",
+      "description": "Un token d'accès npm est présent dans le code.",
+      "recommendation": "Révoquer le token npm et utiliser le registre authentifié côté CI."
+    },
+    {
+      "id": "secret-bearer",
+      "name": "Token Bearer",
+      "category": "secrets",
+      "severity": "high",
+      "pattern": "(?i)\\bBearer\\s+[A-Za-z0-9\\-._~+/]{20,}\\b",
+      "title": "Token d'authentification (Bearer) exposé",
+      "description": "Un jeton d'authentification Bearer est présent en clair dans le code.",
+      "recommendation": "Ne pas embarquer de jetons d'authentification ; les injecter via l'environnement."
+    },
+    {
+      "id": "secret-slack-webhook",
+      "name": "Webhook Slack",
+      "category": "secrets",
+      "severity": "high",
+      "pattern": "https://hooks\\.slack\\.com/services/[A-Za-z0-9/]{10,}",
+      "title": "Webhook Slack exposé",
+      "description": "Une URL de webhook Slack est présente dans le code.",
+      "recommendation": "Révoquer l'URL du webhook dans Slack et utiliser les variables d'environnement."
+    },
+    {
+      "id": "secret-jwt",
+      "name": "JWT",
+      "category": "secrets",
+      "severity": "medium",
+      "pattern": "\\beyJ[A-Za-z0-9_\\-]{20,}\\.[A-Za-z0-9_\\-]{20,}\\.[A-Za-z0-9_\\-]{20,}\\b",
+      "title": "JWT exposé dans le code",
+      "description": "Un token JWT est présent dans le code. Les jetons doivent avoir une durée de vie courte et ne jamais être commités.",
+      "recommendation": "Supprimer le jeton et ne jamais committer de jetons signés."
+    },
+    {
+      "id": "secret-high-entropy",
+      "name": "Chaîne à forte entropie",
+      "category": "secrets",
+      "severity": "low",
+      "builtin": "entropy",
+      "title": "Possible clé/secret (forte entropie)",
+      "description": "Une chaîne de caractères présente une entropie de Shannon élevée, ce qui est caractéristique d'une clé ou d'un jeton généré aléatoirement.",
+      "recommendation": "Vérifier la nature de cette valeur ; si c'est un secret, le déplacer dans l'environnement."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Rapports générés
+report.html
+report.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeScan — Rapport d'analyse</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0; padding: 24px; background: #0f172a; color: #e2e8f0;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  header { display:flex; align-items:baseline; justify-content:space-between;
+           flex-wrap:wrap; gap:8px; border-bottom:1px solid #334155; padding-bottom:16px; }
+  h1 { margin:0; font-size:26px; letter-spacing:.5px; }
+  h1 .accent { color:#38bdf8; }
+  .meta { color:#94a3b8; font-size:13px; }
+  .meta code { background:#1e293b; padding:2px 6px; border-radius:4px; }
+  .cards { display:flex; gap:16px; margin:20px 0; flex-wrap:wrap; }
+  .card { flex:1; min-width:120px; background:#1e293b; border-radius:10px;
+          padding:14px; text-align:center; }
+  .card-num { font-size:30px; font-weight:700; }
+  .card-label { color:#94a3b8; text-transform:uppercase; font-size:12px; }
+  h2 { font-size:18px; margin:28px 0 10px; color:#f8fafc; }
+  .cats, table { width:100%; border-collapse:collapse; }
+  .cats td, table td { padding:8px 10px; }
+  .cats tr { background:#1e293b; }
+  .cats tr:nth-child(even) { background:#16213a; }
+  .bar-cell { width:40%; }
+  .bar { height:10px; background:#38bdf8; border-radius:5px; min-width:2px; }
+  table.detail { margin-top:8px; }
+  table.detail th { text-align:left; color:#94a3b8; font-size:12px;
+                    text-transform:uppercase; border-bottom:1px solid #334155; }
+  table.detail td { vertical-align:top; border-bottom:1px solid #1e293b; }
+  table.detail tr:nth-child(even) { background:#16213a; }
+  .badge { color:#fff; border-radius:20px; padding:3px 10px; font-size:11px;
+           text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
+  .mono { font-family:'Cascadia Code',Consolas,monospace; font-size:12.5px; color:#7dd3fc; }
+  .num { text-align:center; }
+  .rule { font-family:monospace; font-size:11px; background:#0f172a; padding:2px 6px;
+          border-radius:4px; color:#c4b5fd; }
+  .cve { font-size:11px; color:#fbbf24; }
+  .desc { margin-top:4px; color:#cbd5e1; font-size:13px; }
+  .rec { margin-top:4px; color:#86efac; font-size:12.5px; }
+  .snip { margin:8px 0 0; padding:6px 10px; background:#0f172a; border-left:3px solid #475569;
+          border-radius:4px; font-family:monospace; font-size:12px; overflow-x:auto; color:#e2e8f0; }
+  .muted { color:#64748b; }
+  footer { margin-top:30px; color:#64748b; font-size:12px; text-align:center; }
+  @media (prefers-color-scheme: light) {
+    body { background:#f1f5f9; color:#1e293b; }
+    header { border-color:#e2e8f0; }
+    .card, .cats tr, table.detail tr:nth-child(even) { background:#fff; }
+    .cats tr { background:#f8fafc; }
+    .rule { background:#f1f5f9; color:#6d28d9; }
+    .snip { background:#f8fafc; border-left-color:#cbd5e1; }
+    .desc { color:#475569; }
+    .meta { color:#64748b; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Code<span class="accent">Scan</span> — Rapport d'analyse</h1>
+    <div class="meta">
+      Cible&nbsp;: <code>C:\Users\EUDESJ~1\AppData\Local\Temp\codescan_5yx15gk8</code> ·
+      CodeScan v1.0.0 ·
+      2026-08-04T19:12:51
+    </div>
+  </header>
+
+  <div class="cards">
+    <div class="card"><div class="card-num">20</div>
+      <div class="card-label">Findings</div></div>
+    <div class="card"><div class="card-num">104</div>
+      <div class="card-label">Fichiers analysés</div></div>
+    <div class="card" style="border-top:4px solid #c0392b"><div class="card-num">0</div><div class="card-label">critical</div></div><div class="card" style="border-top:4px solid #e67e22"><div class="card-num">20</div><div class="card-label">high</div></div><div class="card" style="border-top:4px solid #f1c40f"><div class="card-num">0</div><div class="card-label">medium</div></div><div class="card" style="border-top:4px solid #3498db"><div class="card-num">0</div><div class="card-label">low</div></div>
+  </div>
+
+  <h2>Répartition par catégorie</h2>
+  <table class='cats'><tr><td>Injection (SQL / commande)</td><td class='num'>9</td><td class='bar-cell'><div class='bar' style='width:45%'></div></td></tr><tr><td>Dépendances (CVE)</td><td class='num'>4</td><td class='bar-cell'><div class='bar' style='width:20%'></div></td></tr><tr><td>Secrets exposés</td><td class='num'>4</td><td class='bar-cell'><div class='bar' style='width:20%'></div></td></tr><tr><td>Cross-Site Scripting (XSS)</td><td class='num'>3</td><td class='bar-cell'><div class='bar' style='width:15%'></div></td></tr></table>
+
+  <h2>Détail des vulnérabilités (20)</h2>
+  <table class="detail">
+    <thead>
+      <tr><th>Sévérité</th><th>Fichier</th><th>Ligne</th><th>Règle</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>package.json</td><td class='num'>24</td><td><span class='rule'>dep-cve</span></td><td><strong>CVE : react-router-dom 6.30.4 (GHSA-jjmj-jmhj-qwj2)</strong> <span class='cve'>GHSA-jjmj-jmhj-qwj2</span><div class='desc'>GHSA-jjmj-jmhj-qwj2 — 
+Paquet : react-router-dom 6.30.4 (écosystème npm).</div><div class='rec'>Mettre à jour la dépendance vers une version corrigée. Consulter https://osv.dev/vulnerability/GHSA-jjmj-jmhj-qwj2</div><pre class='snip'>^6.30.4</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>package.json</td><td class='num'>36</td><td><span class='rule'>dep-cve</span></td><td><strong>CVE : sharp 0.34.5 (GHSA-f88m-g3jw-g9cj)</strong> <span class='cve'>GHSA-f88m-g3jw-g9cj</span><div class='desc'>GHSA-f88m-g3jw-g9cj — 
+Paquet : sharp 0.34.5 (écosystème npm).</div><div class='rec'>Mettre à jour la dépendance vers une version corrigée. Consulter https://osv.dev/vulnerability/GHSA-f88m-g3jw-g9cj</div><pre class='snip'>^0.34.5</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>package.json</td><td class='num'>38</td><td><span class='rule'>dep-cve</span></td><td><strong>CVE : vite 8.0.12 (GHSA-fx2h-pf6j-xcff)</strong> <span class='cve'>GHSA-fx2h-pf6j-xcff</span><div class='desc'>GHSA-fx2h-pf6j-xcff — 
+Paquet : vite 8.0.12 (écosystème npm).</div><div class='rec'>Mettre à jour la dépendance vers une version corrigée. Consulter https://osv.dev/vulnerability/GHSA-fx2h-pf6j-xcff</div><pre class='snip'>^8.0.12</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>package.json</td><td class='num'>38</td><td><span class='rule'>dep-cve</span></td><td><strong>CVE : vite 8.0.12 (GHSA-v6wh-96g9-6wx3)</strong> <span class='cve'>GHSA-v6wh-96g9-6wx3</span><div class='desc'>GHSA-v6wh-96g9-6wx3 — 
+Paquet : vite 8.0.12 (écosystème npm).</div><div class='rec'>Mettre à jour la dépendance vers une version corrigée. Consulter https://osv.dev/vulnerability/GHSA-v6wh-96g9-6wx3</div><pre class='snip'>^8.0.12</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/components/ui/Button.jsx</td><td class='num'>88</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>select-none</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/components/ui/Input.jsx</td><td class='num'>83</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>id || (label ? `select-${label.toLowerCase().replace(/\s+/g, &#x27;-&#x27;)}` : undefined);</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/context/NotificationContext.jsx</td><td class='num'>73</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>.channel(`notifications-updates:${userId}`)</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/assistant/intent.js</td><td class='num'>40</td><td><span class='rule'>generic-secret-assignment</span></td><td><strong>Secret codé en dur</strong><div class='desc'>Un mot de passe ou une clé semble être codé en dur dans le code. Les secrets doivent être gérés via des variables d&#x27;environnement ou un coffre-fort. NB : la valeur ne commence pas par $/% (référence de variable d&#x27;environnement, pas un secret).</div><div class='rec'>Externaliser le secret dans une variable d&#x27;environnement ou un gestionnaire de secrets, et révoquer toute clé déjà exposée.</div><pre class='snip'>RESET_PASSWORD: &#x27;reset_password&#x27;,</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/database.js</td><td class='num'>330</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>.update({ view_count: (data.view_count || 0) + 1 })</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/database.js</td><td class='num'>535</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>.update({ view_count: (data.view_count || 0) + 1 })</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/database.js</td><td class='num'>789</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>`updateOrderStatus: invalid status &quot;${status}&quot;. Must be one of: ${validStatuses.join(&#x27;, &#x27;)}`</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/receipt.js</td><td class='num'>612</td><td><span class='rule'>generic-xss-innerhtml</span></td><td><strong>XSS possible (innerHTML)</strong><div class='desc'>Affectation à innerHTML avec un contenu potentiellement non échappé. Permet l&#x27;exécution de scripts injectés (XSS).</div><div class='rec'>Utiliser textContent pour du texte brut, ou échapper correctement les entrées avant toute insertion HTML.</div><pre class='snip'>container.innerHTML = receiptHtml;</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/receiptService.js</td><td class='num'>600</td><td><span class='rule'>generic-xss-innerhtml</span></td><td><strong>XSS possible (innerHTML)</strong><div class='desc'>Affectation à innerHTML avec un contenu potentiellement non échappé. Permet l&#x27;exécution de scripts injectés (XSS).</div><div class='rec'>Utiliser textContent pour du texte brut, ou échapper correctement les entrées avant toute insertion HTML.</div><pre class='snip'>fallback.innerHTML = html;</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/lib/receiptService.js</td><td class='num'>616</td><td><span class='rule'>generic-xss-document-write</span></td><td><strong>XSS possible (document.write)</strong><div class='desc'>document.write() peut injecter du contenu HTML non échappé dans la page.</div><div class='rec'>Préférer les API DOM (textContent, createElement) et échapper les données.</div><pre class='snip'>printWindow.document.write(html);</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/Cart.jsx</td><td class='num'>334</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>onClick={() =&gt; updateQuantity(item.id, item.quantity + 1)}</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/ProductDetail.jsx</td><td class='num'>510</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>{/* Quantity selector + Add to cart */}</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/ProductDetail.jsx</td><td class='num'>822</td><td><span class='rule'>generic-sql-injection</span></td><td><strong>Injection SQL possible (requête construite dynamiquement)</strong><div class='desc'>Une requête SQL semble être construite par concaténation de chaînes avec des variables non échappées. Un utilisateur malveillant peut injecter du code SQL (par ex. &#x27; OR &#x27;1&#x27;=&#x27;1).</div><div class='rec'>Utiliser des requêtes préparées (prepared statements) ou un ORM avec des paramètres liés. Ne jamais concaténer directement des entrées utilisateur dans du SQL.</div><pre class='snip'>{selectedImageIndex + 1} / {allImages.length}</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/Register.jsx</td><td class='num'>145</td><td><span class='rule'>generic-secret-assignment</span></td><td><strong>Secret codé en dur</strong><div class='desc'>Un mot de passe ou une clé semble être codé en dur dans le code. Les secrets doivent être gérés via des variables d&#x27;environnement ou un coffre-fort. NB : la valeur ne commence pas par $/% (référence de variable d&#x27;environnement, pas un secret).</div><div class='rec'>Externaliser le secret dans une variable d&#x27;environnement ou un gestionnaire de secrets, et révoquer toute clé déjà exposée.</div><pre class='snip'>if (!password) errors.password = &#x27;Le mot de passe est requis.&#x27;;</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/Register.jsx</td><td class='num'>147</td><td><span class='rule'>generic-secret-assignment</span></td><td><strong>Secret codé en dur</strong><div class='desc'>Un mot de passe ou une clé semble être codé en dur dans le code. Les secrets doivent être gérés via des variables d&#x27;environnement ou un coffre-fort. NB : la valeur ne commence pas par $/% (référence de variable d&#x27;environnement, pas un secret).</div><div class='rec'>Externaliser le secret dans une variable d&#x27;environnement ou un gestionnaire de secrets, et révoquer toute clé déjà exposée.</div><pre class='snip'>errors.password = &#x27;Le mot de passe doit contenir au moins 6 caracteres.&#x27;;</pre></td></tr><tr><td><span class="badge" style="background:#e67e22">high</span></td><td class='mono'>src/pages/Register.jsx</td><td class='num'>149</td><td><span class='rule'>generic-secret-assignment</span></td><td><strong>Secret codé en dur</strong><div class='desc'>Un mot de passe ou une clé semble être codé en dur dans le code. Les secrets doivent être gérés via des variables d&#x27;environnement ou un coffre-fort. NB : la valeur ne commence pas par $/% (référence de variable d&#x27;environnement, pas un secret).</div><div class='rec'>Externaliser le secret dans une variable d&#x27;environnement ou un gestionnaire de secrets, et révoquer toute clé déjà exposée.</div><pre class='snip'>errors.confirmPassword = &#x27;Les mots de passe ne correspondent pas.&#x27;;</pre></td></tr>
+    </tbody>
+  </table>
+
+  <footer>Généré par CodeScan — analyse statique sans API d'IA.
+  Vérifier chaque résultat avant de le corriger.</footer>
+</div>
+</body>
+</html>

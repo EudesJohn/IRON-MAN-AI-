@@ -1,0 +1,4 @@
+# CodeScan — dépendances minimales.
+# Le cœur (ast, re, argparse) utilise uniquement la bibliothèque standard.
+# `requests` n'est requis que pour la vérification des CVE via OSV.dev.
+requests>=2.28

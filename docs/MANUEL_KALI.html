@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANUEL KALI</title>
+<style>
+/* Feuille de style partagée des manuels CodeScan (impression A4). */
+
+:root {
+  color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 24px;
+  background: #f8fafc; color: #111;
+  line-height: 1.55;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+h1 { font-size: 26px; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+h3 { font-size: 16px; margin-top: 22px; }
+h4 { font-size: 14px; margin-top: 18px; }
+
+code {
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+}
+
+pre {
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #2563eb; color: #fff; }
+tr:nth-child(even) td { background: #f1f5f9; }
+
+ul, ol { padding-left: 24px; }
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+/* Impression A4 : découpes propres, couleurs conservées. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; padding: 0; }
+  .doc { max-width: 100%; border: none; padding: 0; }
+  h1, h2, h3, h4, pre, table, blockquote, tr, footer { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="print">
+<div class="doc">
+<h1>MANUEL KALI</h1>
+<h1>Manuel d'utilisation — IRON MAN AI sur Kali Linux</h1>
+
+<p>L'outil d'audit web s'appelle <strong>IRON MAN AI</strong> et s'utilise sur une machine</p>
+<p><strong>Kali Linux</strong> : vérifier que tous les outils de sécurité sont présents,</p>
+<p>les installer si nécessaire, puis lancer un <strong>audit de sécurité d'un site web</strong></p>
+<p>avec l'ensemble des outils disponibles (nmap, nikto, whatweb, gobuster,</p>
+<p>dirsearch, sslscan, nuclei, wafw00f, dnsrecon) et, si vous y êtes</p>
+<p>explicitement autorisé, les outils d'attaque sqlmap, xsstrike, commix et</p>
+<p>hydra.</p>
+
+<p><strong>Une seule commande</strong> (<code>ironman.py</code>) lance <strong>tout l'audit ensemble</strong> :</p>
+<p>tous les outils, l'un après l'autre, <strong>au maximum</strong>, sans limite de temps</p>
+<p>d'analyse, et produit <strong>l'audit complet en PDF</strong> (ainsi qu'en JSON et en</p>
+<p>HTML).</p>
+
+<blockquote>⚠️ <strong>Sécurité et éthique.</strong> N'analysez que des sites que <strong>vous possédez</strong></blockquote>
+<blockquote>ou pour lesquels vous disposez d'une <strong>autorisation écrite</strong> du</blockquote>
+<blockquote>propriétaire. Le flag <code>--authorized</code> est obligatoire : il confirme que</blockquote>
+<blockquote>vous comprenez cette règle. Les agissements malveillants sont interdits.</blockquote>
+
+<hr>
+
+<h2>1. Prérequis</h2>
+
+<ul><li><strong>Python 3.10+</strong> (le cœur est en stdlib, aucune dépendance).</li></ul>
+<ul><li><strong>Kali Linux</strong> (les outils ci-dessous y sont généralement présents).</li></ul>
+<ul><li>Les outils suivants, installés comme <strong>paquets Kali</strong> :</li></ul>
+
+<table>
+<tr>
+<th>Outil</th>
+<th>Paquet apt</th>
+<th>But</th>
+</tr>
+<tr>
+<td>nmap</td>
+<td><code>nmap</code></td>
+<td>Découverte des ports/services</td>
+</tr>
+<tr>
+<td>nikto</td>
+<td><code>nikto</code></td>
+<td>Scanner de vulnérabilités web</td>
+</tr>
+<tr>
+<td>whatweb</td>
+<td><code>whatweb</code></td>
+<td>Détection des technologies</td>
+</tr>
+<tr>
+<td>gobuster</td>
+<td><code>gobuster</code></td>
+<td>Énumération de répertoires</td>
+</tr>
+<tr>
+<td>dirsearch</td>
+<td><code>dirsearch</code></td>
+<td>Énumération de chemins web</td>
+</tr>
+<tr>
+<td>sslscan</td>
+<td><code>sslscan</code></td>
+<td>Contrôle TLS/SSL (https)</td>
+</tr>
+<tr>
+<td>nuclei</td>
+<td><code>nuclei</code></td>
+<td>Template de vulnérabilités</td>
+</tr>
+<tr>
+<td>wafw00f</td>
+<td><code>wafw00f</code></td>
+<td>Détection de WAF</td>
+</tr>
+<tr>
+<td>dnsrecon</td>
+<td><code>dnsrecon</code></td>
+<td>Reconnaissance DNS</td>
+</tr>
+</table>
+
+<p>Et pour le mode <strong>attack</strong> : <code>sqlmap</code>, <code>xsstrike</code>, <code>commix</code>, <code>hydra</code>.</p>
+
+<hr>
+
+<h2>2. Vérifier les outils présents avant de lancer (PRÉFLIGHT)</h2>
+
+<p>La commande dédiée est <strong><code>--check</code></strong>. Elle examine chaque binaire et,</p>
+<p>s'il en manque un, <strong>affiche la commande exacte à exécuter</strong> pour</p>
+<p>l'installer.</p>
+
+<pre><code>cd /chemin/codescan
+uv run python kali_scan.py --check</code></pre>
+
+<p>Sortie exemple :</p>
+
+<pre><code>=== Préflight IRON MAN AI (Kali) ===
+  MANQUANT nmap       nmap -&gt; sudo apt-get install -y nmap
+  MANQUANT nikto      nikto -&gt; sudo apt-get install -y nikto
+     ... (tous les outils manquants listés) ...
+  5/9 outils présents, 4 manquant(s).</code></pre>
+
+<p>On peut vérifier aussi les outils "attack" avec <code>--check --attack</code>.</p>
+
+<p>Pour <strong>installer tous les outils manquants en une seule fois</strong>, copiez la</p>
+<p>commande affichée (elle est construite automatiquement) :</p>
+
+<pre><code>sudo apt-get update &amp;&amp; sudo apt-get install -y nmap nikto whatweb gobuster dirsearch sslscan nuclei wafw00f dnsrecon
+# Si vous voulez aussi le mode attack :
+sudo apt-get install -y sqlmap xsstrike commix hydra</code></pre>
+
+<blockquote>Le scanner <strong>ne lance plus le scan</strong> s'il manque des outils « web »</blockquote>
+<blockquote>essentiels, afin de ne jamais donner un faux sentiment de couverture.</blockquote>
+<blockquote>Ajoutez <code>--allow-missing</code> si vous voulez tout de même lancer avec les</blockquote>
+<blockquote>outils présents (le rapport signale alors les outils manquants).</blockquote>
+
+<hr>
+
+<h2>3. LA commande unique : audit complet en PDF (IRON MAN AI)</h2>
+
+<p>Sur Kali, une <strong>seule commande</strong> fait <strong>tout l'audit ensemble</strong> : elle</p>
+<p>lance <strong>tous les outils les uns après les autres</strong> (web <strong>et</strong> invasifs),</p>
+<p><strong>au maximum de leurs capacités</strong>, <strong>sans limite de temps d'analyse</strong>, avec</p>
+<p>toutes les autorisations requises, et produit <strong>l'audit complet en PDF</strong></p>
+<p>(plus le JSON et le HTML) :</p>
+
+<pre><code>uv run python ironman.py --url https://example.com --authorized</code></pre>
+
+<p>C'est l'équivalent exact de</p>
+<p><code>kali_scan.py --url … --authorized --full --attack --pdf</code>. Concrètement,</p>
+<p>le drapeau <code>--full</code> (alias <code>--maximal</code>) :</p>
+
+<ul><li>active <code>--attack</code> (sqlmap, xsstrike, commix, hydra) ;</li></ul>
+<ul><li><strong>supprime les timeouts</strong> : chaque outil tourne jusqu'à son terme ;</li></ul>
+<ul><li>utilise la <strong>wordlist complète</strong> (plus de plafond de 200 mots) ;</li></ul>
+<ul><li>pousse les outils au maximum : <code>nmap -sV -Pn -p- -sC</code> (tous les ports, scripts), sqlmap <code>--level 3 --risk 3</code>, threads élevés ;</li></ul>
+<ul><li><strong>produit automatiquement le PDF</strong> de l'audit complet, à côté des rapports JSON et HTML — écrits par défaut dans le <strong>dossier central <code>rapports/</code></strong> (<code>rapports/audit_web_AAAAMMJJ_HHMMSS.json</code> + <code>.html</code> + <code>.pdf</code>, horodatés). <code>-o /chemin/rapport</code> pour écrire ailleurs.</li></ul>
+
+<pre><code>uv run python ironman.py --url https://example.com --authorized</code></pre>
+
+<p>Le PDF est généré <strong>100 % en bibliothèque standard</strong> (aucun navigateur</p>
+<p>requis) : en-tête, score global, synthèse par sévérité, résultat par outil,</p>
+<p>préflight et détail complet des relevés groupés par outil.</p>
+
+<p>Version *raisonnable* (outils web uniquement, timeouts courts, wordlist</p>
+<p>bornée, <strong>sans</strong> PDF) : utilisez <code>kali_scan.py --url … --authorized</code></p>
+<p>(voir section 4). Vous pouvez aussi restreindre <code>ironman.py</code> avec</p>
+<p><code>--tools</code>, <code>--exclude</code> ou <code>--dry-run</code>, et vérifier d'abord avec <code>--check</code>.</p>
+
+<hr>
+
+<h2>4. Lancer un scan web (toutes les failles)</h2>
+
+<p>Le scan lance <strong>tous les outils disponibles</strong> (palier « web », non invasif)</p>
+<p>contre la cible, avec <strong>timeouts limites et wordlists réduites</strong> pour</p>
+<p>rester raisonnable, puis <strong>réunit les failles trouvées</strong>.</p>
+
+<pre><code># Cible http
+uv run python kali_scan.py --url http://example.com --authorized
+
+# Cible https (sslscan est alors actif)
+uv run python kali_scan.py --url https://shop.example.com --authorized
+
+# Avec un rapport (+ PDF de l'audit complet si --pdf)
+uv run python kali_scan.py --url https://example.com --authorized \
+    --output rapport_web.html
+uv run python kali_scan.py --url https://example.com --authorized \
+    --output rapport_web.json
+uv run python kali_scan.py --url https://example.com --authorized \
+    --output rapport_web.html --pdf</code></pre>
+
+<p>Un <strong>serveur de test local vulnérable</strong> est fourni (cible sûre pour</p>
+<p>s'initier) :</p>
+
+<pre><code>uv run python examples/vuln_server.py --port 8123
+uv run python kali_scan.py --url http://127.0.0.1:8123 --authorized \
+    --output rapport_web.html --allow-missing</code></pre>
+
+<h3>Options principales</h3>
+
+<table>
+<tr>
+<th>Option</th>
+<th>Effet</th>
+</tr>
+<tr>
+<td><code>--url URL</code></td>
+<td>Cible à scanner (http/https)</td>
+</tr>
+<tr>
+<td><code>--check</code></td>
+<td>Préflight (présence des outils) sans scanner</td>
+</tr>
+<tr>
+<td><code>--authorized</code></td>
+<td>Confirme l'autorisation (obligatoire pour scanner)</td>
+</tr>
+<tr>
+<td><code>--attack</code></td>
+<td>Ajoute les outils invasifs (sqlmap, xsstrike, commix, hydra)</td>
+</tr>
+<tr>
+<td><code>--full</code> / <code>--maximal</code></td>
+<td>Mode maximal : tout (web <strong>et</strong> attack), aucun timeout, wordlist complète, nmap <code>-p- -sC</code>, audit complet (JSON + HTML + PDF)</td>
+</tr>
+<tr>
+<td><code>--pdf</code></td>
+<td>Produit aussi le rapport PDF de l'audit complet</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Affiche les commandes qui seraient lancées, <strong>rien n'est exécuté</strong></td>
+</tr>
+<tr>
+<td><code>--tools nmap,nuclei</code></td>
+<td>Limite aux outils listés</td>
+</tr>
+<tr>
+<td><code>--exclude nmap</code></td>
+<td>Exclut des outils</td>
+</tr>
+<tr>
+<td><code>--output fichier.html</code></td>
+<td>Rapport écrit (sinon résumé console)</td>
+</tr>
+<tr>
+<td><code>--allow-missing</code></td>
+<td>Continuer si des outils web manquent</td>
+</tr>
+<tr>
+<td><code>--tool-timeout SECONDES</code></td>
+<td>Borne chaque outil (même en mode maximal), ex. <code>--tool-timeout 600</code> = 10 min/outil</td>
+</tr>
+<tr>
+<td><code>--verbose</code></td>
+<td>Détail du préflight</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>5. Le mode attack (que pour les cibles autorisées)</h2>
+
+<p>Les outils invasifs sont exclus par défaut. Ajoutez <code>--attack</code> quand vous</p>
+<p>avez l'autorisation explicite :</p>
+
+<pre><code>uv run python kali_scan.py --url https://example.com --authorized --attack</code></pre>
+
+<ul><li>sqlmap, xsstrike, commix tournent en mode <strong>détection</strong> (pas de dump / pas de destruction de données).</li></ul>
+<ul><li>hydra est <strong>désactivé par défaut</strong> sauf si vous fournissez des wordlists (objectif : ne jamais brute-forçer sans information préalable).</li></ul>
+
+<hr>
+
+<h2>6. Comprendre les sorties</h2>
+
+<p>Chaque outil produit des *relevés* (findings) associés à la cible. Le</p>
+<p>rapport HTML affiché une <strong>note de dette web /100</strong> (parité avec le rapport</p>
+<p>statique), des cartes (Relevés, Critiques, À revoir, MINEUR, Outils OK),</p>
+<p>la <strong>table par outil</strong> (statut, durée, nombre de relevés), le <strong>préflight</strong></p>
+<p>et les relevés <strong>groupés par outil</strong>. Le JSON reproduit la même structure</p>
+<p>(méta, résumé, findings, score).</p>
+
+<p>Le <strong>code de sortie</strong> de <code>kali_scan.py</code> :</p>
+<ul><li><code>0</code> : aucun relevé critique/haute ;</li></ul>
+<ul><li><code>1</code> : au moins un relevé <strong>critique ou haute</strong> (utile en CI) ;</li></ul>
+<ul><li><code>2</code> : erreur d'usage (pas d'URL, pas d'<code>--authorized</code>, outils manquants).</li></ul>
+
+<hr>
+
+<h2>7. Aller plus loin</h2>
+
+<ul><li><strong>Mode normal (<code>kali_scan.py</code>)</strong> : wordlists <strong>limitées</strong> (max 200 mots) et <strong>timeouts</strong> par outil (120 à 480 s) pour rester raisonnable ; un outil qui timeout n'arrête pas le scan. C'est un premier passage reproductible.</li></ul>
+<ul><li><strong>Mode maximal (<code>ironman.py</code> / <code>--full</code>)</strong> : <strong>aucune limite</strong> — wordlist complète, aucun timeout, outils poussés au maximum et audit complet en PDF. C'est la commande unique « tout l'audit ensemble ».</li></ul>
+<ul><li>Les <strong>logs bruts</strong> de chaque outil sont écrits dans un répertoire temporaire (<code>codescan-kali/TIMESTAMP/</code>) pour analyse manuelle.</li></ul>
+
+<h2>8. Dépannage</h2>
+
+<table>
+<tr>
+<th>Problème</th>
+<th>Cause probable</th>
+<th>Solution</th>
+</tr>
+<tr>
+<td><code>2 erreur d'usage</code></td>
+<td>Pas de <code>--authorized</code></td>
+<td>Ajouter <code>--authorized</code></td>
+</tr>
+<tr>
+<td>Outil «manquant » à <code>--check</code></td>
+<td>Binaire absent</td>
+<td><code>sudo apt-get install -y &lt;paquet&gt;</code></td>
+</tr>
+<tr>
+<td><code>--attack</code> n'effectue rien</td>
+<td>hydra a besoin de wordlists</td>
+<td>Fournir <code>--hydra-users</code>/<code>--hydra-passwords</code></td>
+</tr>
+<tr>
+<td>sslscan non lancé</td>
+<td>Cible en http</td>
+<td>Utiliser une URL https</td>
+</tr>
+</table>
+
+<hr>
+
+<p><strong>Rappel final :</strong> <strong>IRON MAN AI</strong> (CodeScan) est un outil de <strong>défense</strong>.</p>
+<p>Ne l'utilisez que pour des sites que vous possédez ou que vous êtes autorisé</p>
+<p>à auditer. La sécurité est une histoire de confiance, pas de parcours</p>
+<p>d'outils.</p>
+<footer>Généré par CodeScan — manuel imprimable.</footer>
+</div>
+</body>
+</html>

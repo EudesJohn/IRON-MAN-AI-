@@ -1,0 +1,32 @@
+
+[IRON MAN AI] Outils Android disponibles :
+  [OK] apktool
+  [OK] jadx
+  [MANQUANT] aapt (sudo apt-get install -y aapt)
+  [MANQUANT] dex2jar (sudo apt-get install -y dex2jar)
+  [MANQUANT] zipalign (sudo apt-get install -y zipalign)
+  → L'analyse de base (manifeste, dex, secrets) fonctionne sans ces outils ; apktool enrichit le manifeste, et jadx (avec --jadx) décompile le code (~10 min sur les grosses apps).
+══════════════════════════════════════════════════════════════
+  IRON MAN AI — Analyse Android
+══════════════════════════════════════════════════════════════
+  APK : /tmp/fdroid.apk
+
+[IRON MAN AI] jadx : décompilation en cours… (10+ minutes sur les grosses apps)
+══════════════════════════════════════════════════════════════
+  IRON MAN AI — Résumé de l'analyse Android
+══════════════════════════════════════════════════════════════
+  Package           : org.fdroid.fdroid
+  Version           : N/A
+  minSdk/targetSdk  : N/A / N/A
+  SHA-256           : 985f5181d48bb6ba…
+
+  Total findings    : 393
+    critical 0    ·
+    high     143  ██████████████████████████████
+    medium   225  ██████████████████████████████
+    low      25   █████████████████████████
+  Permissions dangereuses : 7
+  Composants exportés     : 21
+  Secrets détectés        : 0
+══════════════════════════════════════════════════════════════
+[android] Rapports écrits : rapport_fdroid.json / rapport_fdroid.html
