@@ -10,6 +10,14 @@ import subprocess
 import json
 from datetime import datetime
 
+# Fix Windows encoding for Unicode characters
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    # Enable ANSI colors on Windows
+    os.system('')
+
 # ─── Couleurs ──────────────────────────────────────────────────
 R = "\033[0m"
 RED = "\033[91m"
