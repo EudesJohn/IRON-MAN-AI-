@@ -101,6 +101,12 @@ def run_one(tool_name: str, cmd: list, timeout=None, tmp_dir: str = None) -> Too
             return result
 
     try:
+        # Sur Windows, les fichiers .BAT doivent etre executes via cmd.exe
+        if platform.system() == "Windows" and cmd and len(cmd) > 0:
+            exe = cmd[0]
+            if exe.lower().endswith(".bat"):
+                cmd = ["cmd", "/c"] + cmd
+
         proc = subprocess.run(
             cmd,
             capture_output=True,

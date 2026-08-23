@@ -67,23 +67,27 @@ def _cmd_nikto(target, ctx):
 
 
 def _cmd_whatweb(target, ctx):
-    return ["whatweb", target["url"], "--log-json", ctx["tmp"] + "/whatweb.json"]
+    bin_path = _find_binary("whatweb") or "whatweb"
+    return [bin_path, target["url"], "--log-json", ctx["tmp"] + "/whatweb.json"]
 
 
 def _cmd_gobuster(target, ctx):
     threads = "64" if _maximal(ctx) else "16"
-    return ["gobuster", "dir", "-u", target["url"], "-w",
+    bin_path = _find_binary("gobuster") or "gobuster"
+    return [bin_path, "dir", "-u", target["url"], "-w",
             ctx["wordlist"], "-t", threads, "-q"]
 
 
 def _cmd_dirsearch(target, ctx):
     threads = ["--threads", "30"] if _maximal(ctx) else []
-    return ["dirsearch", "-u", target["url"], "-w", ctx["wordlist"],
+    bin_path = _find_binary("dirsearch") or "dirsearch"
+    return [bin_path, "-u", target["url"], "-w", ctx["wordlist"],
             "-o", ctx["tmp"] + "/dirsearch.json"] + threads
 
 
 def _cmd_sslscan(target, ctx):
-    return ["sslscan", "--no-colour", netloc(target)]
+    bin_path = _find_binary("sslscan") or "sslscan"
+    return [bin_path, "--no-colour", netloc(target)]
 
 
 def _cmd_nuclei(target, ctx):
@@ -94,33 +98,37 @@ def _cmd_nuclei(target, ctx):
 
 
 def _cmd_wafw00f(target, ctx):
-    return ["wafw00f", target["url"]]
+    bin_path = _find_binary("wafw00f") or "wafw00f"
+    return [bin_path, target["url"]]
 
 
 def _cmd_dnsrecon(target, ctx):
-    return ["dnsrecon", "-d", target["domain"], "-t", "std"]
+    bin_path = _find_binary("dnsrecon") or "dnsrecon"
+    return [bin_path, "-d", target["domain"], "-t", "std"]
 
 
 # --- Palier attack (uniquement avec --attack) --------------------------------
-
 def _cmd_sqlmap(target, ctx):
+    bin_path = _find_binary("sqlmap") or "sqlmap"
     if _maximal(ctx):
         # Détection la plus poussée : --level 3 --risk 3 (lent mais exhaustif).
-        return ["sqlmap", "-u", target["url"], "--batch", "--forms", "--crawl", "3",
+        return [bin_path, "-u", target["url"], "--batch", "--forms", "--crawl", "3",
                 "-t", "1", "--risk", "3", "--level", "3",
                 "--output-dir", ctx["tmp"] + "/sqlmap"]
-    return ["sqlmap", "-u", target["url"], "--batch", "--forms", "--crawl", "2",
+    return [bin_path, "-u", target["url"], "--batch", "--forms", "--crawl", "2",
             "-t", "1", "--risk", "1", "--level", "1",
             "--output-dir", ctx["tmp"] + "/sqlmap"]
 
 
 def _cmd_xsstrike(target, ctx):
-    return ["xsstrike", "-u", target["url"], "--crawl", "--loglevel", "ERROR"]
+    bin_path = _find_binary("xsstrike") or "xsstrike"
+    return [bin_path, "-u", target["url"], "--crawl", "--loglevel", "ERROR"]
 
 
 def _cmd_commix(target, ctx):
     level = "3" if _maximal(ctx) else "1"
-    return ["commix", "-u", target["url"], "--batch", "--level", level]
+    bin_path = _find_binary("commix") or "commix"
+    return [bin_path, "-u", target["url"], "--batch", "--level", level]
 
 
 def _cmd_hydra(target, ctx):
