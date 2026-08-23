@@ -160,6 +160,12 @@ def run_scan(url, scan_type, authorized, pdf, exploit):
     if pdf:
         cmd.append("--pdf")
     
+    # Sur Windows, ajouter --allow-missing car certains outils
+    # necessitent les droits admin pour etre installes
+    import platform
+    if platform.system() == "Windows":
+        cmd.append("--allow-missing")
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output = os.path.join(base_dir, "rapports", f"audit_{timestamp}")
     cmd.extend(["-o", output])

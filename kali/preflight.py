@@ -11,6 +11,7 @@ l'utilisateur ait bien tous les outils avant de lancer un scan.
 import os
 import platform
 import shutil
+import sys
 
 from .tools import all_tools, TOOLS
 
@@ -69,8 +70,23 @@ _MACOS_INSTALL = {
 # ─── Core ───────────────────────────────────────────────────────────────
 
 def which(binary: str):
-    """Renvoie le chemin trouvable de `binary` (ou None)."""
-    return shutil.which(binary)
+    """Renvoie le chemin trouvable de `binary` (ou None).
+    
+    Sur Windows, verifie aussi les scripts sans .exe (pip installe
+    parfois des scripts bash sans extension).
+    """
+    path = shutil.which(binary)
+    if path:
+        return path
+    # Sur Windows, chercher aussi sans .exe (scripts pip)
+    if platform.system() == "Windows":
+        # Chercher dans le venv Scripts
+        venv_scripts = os.path.join(sys.prefix, "Scripts") if hasattr(sys, 'prefix') else None
+        if venv_scripts and os.path.isdir(venv_scripts):
+            candidate = os.path.join(venv_scripts, binary)
+            if os.path.isfile(candidate):
+                return candidate
+    return None
 
 
 def check_tools(attack: bool = False) -> dict:
