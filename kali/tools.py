@@ -9,12 +9,17 @@ Les outils invasifs (sqlmap, xsstrike, commix, hydra) ne sont lancés que
 lorsque le palier "attack" est explicitement demandé.
 """
 
+import platform
+
 from .urls import netloc
 from .wordlist import resolve_wordlist
 
 # Wordlist par défaut pour gobuster / dirsearch (fichier Kali, sinon une
 # mini-liste embarquée résolue par `resolve_wordlist`).
 KALI_WORDLIST = "/usr/share/wordlists/dirb/common.txt"
+
+# Détection OS pour alternatives Windows
+_IS_WINDOWS = platform.system() == "Windows"
 
 
 def _maximal(ctx) -> bool:
@@ -24,7 +29,6 @@ def _maximal(ctx) -> bool:
 
 def _cmd_nmap(target, ctx):
     if _maximal(ctx):
-        # Scan maximal : tous les ports (-p-), scripts par défaut (-sC).
         return ["nmap", "-sV", "-Pn", "-p-", "-sC", target["host"]]
     return ["nmap", "-sV", "-Pn", "--top-ports", "100", target["host"]]
 

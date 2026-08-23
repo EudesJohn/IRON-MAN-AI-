@@ -60,6 +60,17 @@ def make_tmp_dir(base: str = None) -> str:
     return path
 
 
+# Alternatives Windows pour les outils Linux manquants
+_WINDOWS_FALLBACKS = {
+    "nmap": ["python", "-m", "nmap"],
+    "nikto": ["python", "-m", "whatweb"],  # whatweb comme alternative
+    "gobuster": ["python", "-m", "dirsearch"],  # dirsearch comme alternative
+    "sslscan": None,  # pas d'alternative directe
+    "nuclei": None,  # necessite Go
+    "hydra": None,  # necessite compilation
+}
+
+
 def run_one(tool_name: str, cmd: list, timeout=None, tmp_dir: str = None) -> ToolResult:
     """Exécute `cmd`, capture sa sortie brute.
 
@@ -67,14 +78,26 @@ def run_one(tool_name: str, cmd: list, timeout=None, tmp_dir: str = None) -> Too
     limite de temps** (mode maximal d'IRON MAN AI — les outils tournent
     jusqu'à leur terme). Si `tmp_dir` est donné, la sortie brute est écrite
     dans `<tmp_dir>/<tool_name>.txt` (et `<tool_name>.err.txt` pour stderr).
+    
+    Sur Windows, si l'outil est manquant, essaie les alternatives Python.
     """
     import time
+    import platform
     started = time.monotonic()
     result = ToolResult(tool_name, cmd)
 
     if not cmd:
-        result.missing = True
-        return result
+        # Essayer les alternatives Windows
+        if platform.system() == "Windows" and tool_name in _WINDOWS_FALLBACKS:
+            fallback = _WINDOWS_FALLBACKS[tool_name]
+            if fallback:
+                cmd = fallback
+            else:
+                result.missing = True
+                return result
+        else:
+            result.missing = True
+            return result
 
     try:
         proc = subprocess.run(
@@ -89,6 +112,36 @@ def run_one(tool_name: str, cmd: list, timeout=None, tmp_dir: str = None) -> Too
         result.stdout = proc.stdout or ""
         result.stderr = proc.stderr or ""
     except FileNotFoundError:
+        # Sur Windows, essayer les alternatives si disponibles
+        if platform.system() == "Windows" and tool_name in _WINDOWS_FALLBACKS:
+            fallback = _WINDOWS_FALLBACKS[tool_name]
+            if fallback and fallback != cmd:
+                try:
+                    proc = subprocess.run(
+                        fallback,
+                        capture_output=True,
+                        timeout=timeout,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                    )
+                    result.rc = proc.returncode
+                    result.stdout = proc.stdout or ""
+                    result.stderr = proc.stderr or ""
+                    result.missing = False
+                    result.duration = time.monotonic() - started
+                    if tmp_dir:
+                        os.makedirs(tmp_dir, exist_ok=True)
+                        with open(os.path.join(tmp_dir, f"{tool_name}.txt"), "w",
+                                  encoding="utf-8", errors="replace") as fh:
+                            fh.write(result.stdout)
+                        if result.stderr:
+                            with open(os.path.join(tmp_dir, f"{tool_name}.err.txt"), "w",
+                                      encoding="utf-8", errors="replace") as fh:
+                                fh.write(result.stderr)
+                    return result
+                except Exception:
+                    pass
         result.missing = True
     except subprocess.TimeoutExpired as exc:
         result.timed_out = True
