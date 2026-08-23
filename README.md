@@ -7,52 +7,71 @@
 
 ---
 
-## ⚡ Installation Rapide
+## ⚡ Installation — UNE SEULE COMMANDE
 
-### Linux / Kali / WSL (une seule commande)
-
-```bash
-# Option 1 : Installation directe
-git clone https://github.com/EudesJohn/IRON-MAN-AI-.git
-cd IRON-MAN-AI-/codescan
-sudo bash setup.sh
-
-# Option 2 : Télécharger et installer
-curl -sL https://raw.githubusercontent.com/EudesJohn/IRON-MAN-AI-/main/setup.sh | sudo bash
-```
-
-### Windows
-
-```batch
-# 1. Installer Python (cocher "Add to PATH") :
-#    https://www.python.org/downloads/
-
-# 2. Installer Git :
-#    https://git-scm.com/download/win
-
-# 3. Ouvrir PowerShell et lancer :
-git clone https://github.com/EudesJohn/IRON-MAN-AI-.git
-cd IRON-MAN-AI-/codescan
-.\install.bat
-```
-
-### Docker (alternatif)
+### 🐧 Linux / Kali / WSL / macOS
 
 ```bash
-docker run -it --rm -v $(pwd)/rapports:/app/rapports ironman-ai
+curl -sL https://raw.githubusercontent.com/EudesJohn/IRON-MAN-AI-/main/install_anywhere.sh | sudo bash
+```
+
+### 🪟 Windows (PowerShell — copier/coller)
+
+```powershell
+# 1. Installer Python : https://www.python.org/downloads/ (cocher "Add to PATH")
+# 2. Installer Git : https://git-scm.com/download/win
+# 3. Ouvrir PowerShell et coller :
+git clone https://github.com/EudesJohn/IRON-MAN-AI-.git "$env:USERPROFILE\iron-man-ai" ; cd "$env:USERPROFILE\iron-man-ai\codescan" ; .\install.bat
 ```
 
 ---
 
 ## 🚀 Utilisation
 
-### Menu Interactif (recommandé pour les débutants)
+### Tapez simplement `ironman`
 
 ```bash
-python ironman_menu.py
+ironman
 ```
 
-L'utilisateur répond simplement aux questions — **aucune commande à taper** :
+C'est tout ! Le menu interactif se lance automatiquement.
+
+### Commandes disponibles
+
+| Commande | Description |
+|---|---|
+| `ironman` | Lancer le menu interactif |
+| `ironman --scan <url>` | Scan web rapide |
+| `ironman --exploit <url>` | Exploitation directe |
+| `ironman --update` | Mettre à jour |
+| `ironman --uninstall` | Désinstaller |
+| `ironman --help` | Aide |
+
+### Exemples
+
+```bash
+# Menu interactif (recommandé pour les débutants)
+ironman
+
+# Scan web rapide
+ironman --scan https://example.com
+
+# Exploitation directe
+ironman --exploit "https://example.com/?id=1"
+
+# Mettre à jour
+ironman --update
+
+# Désinstaller
+ironman --uninstall
+```
+
+---
+
+## 🎯 Menu Interactif
+
+Quand vous tapez `ironman`, le menu se lance :
+
 ```
 ❓ Que voulez-vous faire ?
     [1] 🌐 Auditer un site web
@@ -77,25 +96,6 @@ L'utilisateur répond simplement aux questions — **aucune commande à taper** 
     [2] Scan rapide
     [3] Scan d'attaque
 → Votre choix : 1
-```
-
-### Ligne de Commande
-
-```bash
-# Scan web complet
-python kali_scan.py --url https://cible.com --authorized --attack --exploit --pdf
-
-# Exploitation directe (WAF bypass)
-python exploit_now.py "https://cible.com/?id=1" --authorized
-
-# Analyse Android
-python mobile_scan.py --android --apk app.apk --authorized --jadx
-
-# Audit WiFi
-python mobile_scan.py --wifi --bssid AA:BB:CC:DD:EE:FF --authorized --crack
-
-# Audit téléphone
-python mobile_scan.py --device --authorized
 ```
 
 ---
@@ -137,9 +137,9 @@ IRON-MAN-AI-/
 │   ├── reports/               # Génération de rapports
 │   ├── rapports/              # Rapports générés
 │   ├── docs/                  # Manuels (PDF, HTML)
-│   ├── tests/                 # 304+ tests automatisés
-│   ├── setup.sh               # Installation rapide Linux
-│   ├── install.sh             # Installation complète Linux
+│   ├── tests/                 # Tests automatisés
+│   ├── install_anywhere.sh    # Installation universelle
+│   ├── uninstall.sh           # Désinstallation
 │   ├── install.bat            # Installation Windows
 │   └── requirements.txt       # Dépendances Python
 ├── Intelligence Artificielle/ # Module IA (séparé)
@@ -194,7 +194,7 @@ L'outil inclut des protections :
 ## 🧪 Tests
 
 ```bash
-# Lancer les 304+ tests
+# Lancer les tests
 cd codescan
 python -m pytest tests/ -v
 ```
@@ -203,7 +203,7 @@ python -m pytest tests/ -v
 
 ## 📄 Licence
 
-MIT — Utilisez librement, maisresponsablement.
+MIT — Utilisez librement, mais responsablement.
 
 ---
 
