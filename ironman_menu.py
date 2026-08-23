@@ -8,6 +8,7 @@ import os
 import sys
 import subprocess
 import json
+import time
 from datetime import datetime
 
 # Fix Windows encoding for Unicode characters
@@ -26,6 +27,18 @@ YELLOW = "\033[93m"
 BLUE = "\033[94m"
 CYAN = "\033[96m"
 BOLD = "\033[1m"
+DIM = "\033[2m"
+
+# ─── Animations ────────────────────────────────────────────────
+try:
+    from animations import (
+        Spinner, ProgressBar, ScanAnimator, show_loading_dots,
+        show_scan_intro, show_tool_status, show_report_generation,
+        show_ascii_splash,
+    )
+    HAS_ANIMATIONS = True
+except ImportError:
+    HAS_ANIMATIONS = False
 
 
 def banner():
@@ -131,18 +144,27 @@ def ask_wifi_bssid():
     return ask("Quel est le BSSID du réseau WiFi ? (format: AA:BB:CC:DD:EE:FF)")
 
 
+def _animated_scan_header(url, scan_type, pdf, exploit):
+    """Affiche un header anime pour le scan."""
+    if HAS_ANIMATIONS:
+        show_scan_intro(url, scan_type)
+    else:
+        print(f"\n{BLUE}{'═'*60}{R}")
+        print(f"{BLUE}  LANCEMENT DU SCAN{R}")
+        print(f"{BLUE}{'═'*60}{R}")
+        print(f"  Cible    : {url}")
+        print(f"  Type     : {scan_type}")
+        print(f"  PDF      : {'Oui' if pdf else 'Non'}")
+        print(f"  Exploit  : {'Oui' if exploit else 'Non'}")
+        print(f"{BLUE}{'═'*60}{R}\n")
+
+
 def run_scan(url, scan_type, authorized, pdf, exploit):
     """Lance le scan avec les paramètres choisis."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    print(f"\n{BLUE}{'═'*60}{R}")
-    print(f"{BLUE}  LANCEMENT DU SCAN{R}")
-    print(f"{BLUE}{'═'*60}{R}")
-    print(f"  Cible    : {url}")
-    print(f"  Type     : {scan_type}")
-    print(f"  PDF      : {'Oui' if pdf else 'Non'}")
-    print(f"  Exploit  : {'Oui' if exploit else 'Non'}")
-    print(f"{BLUE}{'═'*60}{R}\n")
+    # Header anime
+    _animated_scan_header(url, scan_type, pdf, exploit)
     
     # Construire la commande
     cmd = [sys.executable, os.path.join(base_dir, "kali_scan.py")]
@@ -172,24 +194,49 @@ def run_scan(url, scan_type, authorized, pdf, exploit):
     
     print(f"{CYAN}  Commande : {' '.join(cmd)}{R}\n")
     
-    try:
-        proc = subprocess.run(cmd, cwd=base_dir, timeout=600)
-        if proc.returncode == 0:
-            print(f"\n{GREEN}  ✅ Scan terminé avec succès !{R}")
-        else:
-            print(f"\n{YELLOW}  ⚠️ Scan terminé (code: {proc.returncode}){R}")
-    except subprocess.TimeoutExpired:
-        print(f"\n{RED}  ❌ Timeout (10 minutes). Le scan est trop long.{R}")
-    except KeyboardInterrupt:
-        print(f"\n{YELLOW}  Interrompu par l'utilisateur.{R}")
+    # Animation de chargement pendant le scan
+    if HAS_ANIMATIONS:
+        spinner = Spinner("Scan en cours...", style="scan", color=CYAN)
+        spinner.start()
+        
+        start_time = time.time()
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=600)
+            duration = time.time() - start_time
+            spinner.stop()
+            
+            if proc.returncode == 0:
+                print(f"\n{GREEN}  ✅ Scan terminé avec succès ! ({duration:.1f}s){R}")
+            else:
+                print(f"\n{YELLOW}  ⚠️ Scan terminé (code: {proc.returncode}, {duration:.1f}s){R}")
+        except subprocess.TimeoutExpired:
+            spinner.stop()
+            print(f"\n{RED}  ❌ Timeout (10 minutes). Le scan est trop long.{R}")
+        except KeyboardInterrupt:
+            spinner.stop()
+            print(f"\n{YELLOW}  Interrompu par l'utilisateur.{R}")
+    else:
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=600)
+            if proc.returncode == 0:
+                print(f"\n{GREEN}  ✅ Scan terminé avec succès !{R}")
+            else:
+                print(f"\n{YELLOW}  ⚠️ Scan terminé (code: {proc.returncode}){R}")
+        except subprocess.TimeoutExpired:
+            print(f"\n{RED}  ❌ Timeout (10 minutes). Le scan est trop long.{R}")
+        except KeyboardInterrupt:
+            print(f"\n{YELLOW}  Interrompu par l'utilisateur.{R}")
 
 
 def run_android(apk_path, authorized):
     """Lance l'analyse Android."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    print(f"\n{BLUE}═══ ANALYSE ANDROID ═══{R}")
-    print(f"  APK : {apk_path}\n")
+    print(f"\n{BLUE}{'═'*60}{R}")
+    print(f"{BLUE}  ANALYSE ANDROID{R}")
+    print(f"{BLUE}{'═'*60}{R}")
+    print(f"  APK : {apk_path}")
+    print(f"{BLUE}{'═'*60}{R}\n")
     
     cmd = [
         sys.executable,
@@ -199,18 +246,34 @@ def run_android(apk_path, authorized):
     if authorized:
         cmd.append("--authorized")
     
-    try:
-        subprocess.run(cmd, cwd=base_dir, timeout=300)
-    except subprocess.TimeoutExpired:
-        print(f"{RED}  Timeout{R}")
+    if HAS_ANIMATIONS:
+        spinner = Spinner("Analyse de l'APK en cours...", style="dots", color=CYAN)
+        spinner.start()
+        start_time = time.time()
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=300)
+            duration = time.time() - start_time
+            spinner.stop()
+            print(f"\n{GREEN}  ✅ Analyse terminee ({duration:.1f}s){R}")
+        except subprocess.TimeoutExpired:
+            spinner.stop()
+            print(f"{RED}  Timeout{R}")
+    else:
+        try:
+            subprocess.run(cmd, cwd=base_dir, timeout=300)
+        except subprocess.TimeoutExpired:
+            print(f"{RED}  Timeout{R}")
 
 
 def run_wifi(bssid, authorized):
     """Lance le scan WiFi."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    print(f"\n{BLUE}═══ SCAN WiFi ═══{R}")
-    print(f"  BSSID : {bssid}\n")
+    print(f"\n{BLUE}{'═'*60}{R}")
+    print(f"{BLUE}  SCAN WiFi{R}")
+    print(f"{BLUE}{'═'*60}{R}")
+    print(f"  BSSID : {bssid}")
+    print(f"{BLUE}{'═'*60}{R}\n")
     
     cmd = [
         sys.executable,
@@ -220,17 +283,32 @@ def run_wifi(bssid, authorized):
     if authorized:
         cmd.append("--authorized")
     
-    try:
-        subprocess.run(cmd, cwd=base_dir, timeout=300)
-    except subprocess.TimeoutExpired:
-        print(f"{RED}  Timeout{R}")
+    if HAS_ANIMATIONS:
+        spinner = Spinner("Scan WiFi en cours...", style="arrows", color=CYAN)
+        spinner.start()
+        start_time = time.time()
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=300)
+            duration = time.time() - start_time
+            spinner.stop()
+            print(f"\n{GREEN}  ✅ Scan WiFi termine ({duration:.1f}s){R}")
+        except subprocess.TimeoutExpired:
+            spinner.stop()
+            print(f"{RED}  Timeout{R}")
+    else:
+        try:
+            subprocess.run(cmd, cwd=base_dir, timeout=300)
+        except subprocess.TimeoutExpired:
+            print(f"{RED}  Timeout{R}")
 
 
 def run_device(authorized):
     """Lance l'audit du périphérique."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    print(f"\n{BLUE}═══ AUDIT PÉRIPHÉRIQUE ═══{R}\n")
+    print(f"\n{BLUE}{'═'*60}{R}")
+    print(f"{BLUE}  AUDIT PERIPHERIQUE{R}")
+    print(f"{BLUE}{'═'*60}{R}\n")
     
     cmd = [
         sys.executable,
@@ -240,10 +318,23 @@ def run_device(authorized):
     if authorized:
         cmd.append("--authorized")
     
-    try:
-        subprocess.run(cmd, cwd=base_dir, timeout=300)
-    except subprocess.TimeoutExpired:
-        print(f"{RED}  Timeout{R}")
+    if HAS_ANIMATIONS:
+        spinner = Spinner("Audit du peripherique...", style="pulse", color=CYAN)
+        spinner.start()
+        start_time = time.time()
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=300)
+            duration = time.time() - start_time
+            spinner.stop()
+            print(f"\n{GREEN}  ✅ Audit termine ({duration:.1f}s){R}")
+        except subprocess.TimeoutExpired:
+            spinner.stop()
+            print(f"{RED}  Timeout{R}")
+    else:
+        try:
+            subprocess.run(cmd, cwd=base_dir, timeout=300)
+        except subprocess.TimeoutExpired:
+            print(f"{RED}  Timeout{R}")
 
 
 def run_github_analysis(repo_url):
@@ -262,10 +353,26 @@ def run_github_analysis(repo_url):
         "--repo", repo_url,
     ]
     
-    try:
-        subprocess.run(cmd, cwd=base_dir, timeout=600)
-    except subprocess.TimeoutExpired:
-        print(f"{RED}  Timeout — l'analyse a pris trop de temps{R}")
+    if HAS_ANIMATIONS:
+        spinner = Spinner("Analyse du code en cours...", style="matrix", color=CYAN)
+        spinner.start()
+        start_time = time.time()
+        try:
+            proc = subprocess.run(cmd, cwd=base_dir, timeout=600)
+            duration = time.time() - start_time
+            spinner.stop()
+            if proc.returncode == 0:
+                print(f"\n{GREEN}  ✅ Analyse terminee ({duration:.1f}s){R}")
+            else:
+                print(f"\n{YELLOW}  ⚠️ Analyse terminee (code: {proc.returncode}, {duration:.1f}s){R}")
+        except subprocess.TimeoutExpired:
+            spinner.stop()
+            print(f"{RED}  Timeout — l'analyse a pris trop de temps{R}")
+    else:
+        try:
+            subprocess.run(cmd, cwd=base_dir, timeout=600)
+        except subprocess.TimeoutExpired:
+            print(f"{RED}  Timeout — l'analyse a pris trop de temps{R}")
 
 
 def install_tools():
@@ -293,11 +400,11 @@ def install_tools():
     
     # 1. Installer les outils Python
     print(f"{CYAN}  [1/2] Installation des outils Python...{R}\n")
-    for tool in tools_pip:
+    for i, tool in enumerate(tools_pip, 1):
         if shutil.which(tool):
             print(f"    {GREEN}[OK]{R} {tool}")
         else:
-            print(f"    {YELLOW}[...] {tool}...{R}")
+            print(f"    {YELLOW}[...] Installation de {tool}...{R}")
             try:
                 result = subprocess.run(
                     [sys.executable, "-m", "pip", "install", tool],
@@ -311,9 +418,18 @@ def install_tools():
                 print(f"    {RED}[TIMEOUT]{R} {tool}")
             except Exception as e:
                 print(f"    {RED}[ERREUR]{R} {tool}: {e}")
+        
+        # Barre de progression
+        bar_width = 30
+        filled = int(bar_width * i / len(tools_pip))
+        bar = "█" * filled + "░" * (bar_width - filled)
+        sys.stdout.write(f"\r{CYAN}  Progression [{bar}] {i}/{len(tools_pip)}{R}")
+        sys.stdout.flush()
+    
+    print(f"\n")
     
     # 2. Vérifier les outils système
-    print(f"\n{CYAN}  [2/2] Vérification des outils système...{R}\n")
+    print(f"{CYAN}  [2/2] Vérification des outils système...{R}\n")
     system_tools = ["nmap", "nikto", "whatweb", "gobuster", "sslscan", "nuclei", "hydra", "adb"]
     missing = []
     for tool in system_tools:
@@ -424,7 +540,13 @@ def main():
                 print(f"{RED}  URL requise.{R}")
                 continue
             
-            print(f"\n{CYAN}  Lancement du brute-force sur {url}...{R}")
+            if HAS_ANIMATIONS:
+                print(f"\n{CYAN}  Lancement du brute-force sur {url}...{R}")
+                spinner = Spinner("Brute-force en cours...", style="rocket", color=RED)
+                spinner.start()
+            else:
+                print(f"\n{CYAN}  Lancement du brute-force sur {url}...{R}")
+            
             base_dir = os.path.dirname(os.path.abspath(__file__))
             cmd = [
                 sys.executable,
@@ -432,8 +554,12 @@ def main():
                 url, "--authorized",
             ]
             try:
-                subprocess.run(cmd, cwd=base_dir, timeout=600)
+                proc = subprocess.run(cmd, cwd=base_dir, timeout=600)
+                if HAS_ANIMATIONS:
+                    spinner.stop()
             except subprocess.TimeoutExpired:
+                if HAS_ANIMATIONS:
+                    spinner.stop()
                 print(f"{RED}  Timeout{R}")
         
         # ── Installer outils ──
